@@ -2,6 +2,7 @@
     :field public Sname
     :field public Lmail
     :field public Smail
+    :field public Hpswd
     :field public Lpswd
     :field public Spswd
     :field public Luserid
@@ -39,6 +40,7 @@
           ig.Inputs←{⍵ New _.EditField}¨'Luserid' 'Lpswd'
           ig.Inputs[1 2].SetAttr⊂'style="width:30em;"'            ⍝ set width of input fields
           ig.Inputs[1 2].SetAttr'placeholder="User ID"'('placeholder="Password"' 'type="Password"')
+          (form.Add _.input).(type id name)←'hidden' 'Hpswd' 'Hpswd'
           (form.Add _.input).(type id name)←'hidden' 'Lsalt' 'Lsalt'
           (form.Add _.input).(type id name)←'hidden' 'Tsalt' 'Tsalt'
           ig.Inputs[1].On'change' 'GetSalt'
@@ -54,7 +56,7 @@
         ⍝   hashObj.update(($("#Lsalt").val()),$("#Lpswd").val());
         ⍝   temp = hashObj.getHash("HEX");
         ⍝   hashObj.update(($("#Tsalt").val()),temp);
-        ⍝   $("#Lpswd").val(hashObj.getHash("HEX"));
+        ⍝   $("#Hpswd").val(hashObj.getHash("HEX"));
         ⍝ }
      
      
@@ -84,7 +86,7 @@
 
     ∇ R←Login;ret;newUrl;newHash;origSalt;newSalt
       :Access public
-      ret←(SessionGet'APIref').CallAPI('Login2'(Luserid Lpswd TempSalt))
+      ret←(SessionGet'APIref').CallAPI('Login2'(Luserid Hpswd TempSalt))
       ⎕←ret ⋄ ∘∘∘
       :If 0=⊃ret
           newUrl←(_Request.GetHeader'origin'),'/index'  ⍝ Host

@@ -197,9 +197,9 @@
     ∇
 
     ∇ (rc msg data)←ClientSummary cid;pdir;sdir
-         ⍝ returns [;1] portfolio name [;2] number commodities [;3] number scenarios [;4] created [;5] last update
+         ⍝ returns [;1] portfolio name [;2] number commodities [;3] number scenarios [;4] created [;5] last update [;6] pid [;7] pdet
       :Access public shared
-      (rc msg data)←0 ''(0 5⍴'' 0 0 '' '')
+      (rc msg data)←0 ''(0 7⍴'' 0 0 '' '')
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
           :If cid∊getClientDir[;1]
@@ -212,6 +212,7 @@
       :EndHold
       :If ~0∊⍴pdir
           data←pdir[;4 5],({¯1+≢⍵}⌸pdir[;1],sdir[;2]),#.utils.fmtTs¨pdir[;6 7]
+          data,←pdir[;1 3]  ⍝ MBaas: added pid & details
       :EndIf
     ∇
 
