@@ -1,0 +1,29 @@
+﻿<Application>
+	  <!-- might be used to configure pswd-security -->
+    <PswdSec>6/1/1/1/0</PswdSec>        <!-- Password-Security: min. length/uppercase/lowercase/digits/special-chars -->
+    <SpecialChars>,;.:-_!#+*=(){}[]</SpecialChars>  <!-- Special characters for passwords -->
+
+    <!-- following paths refer to file-system of the TARGET-Machine 
+    on which your processes will run (as set in API_Hosts -->
+    <APIHomeDir>./API</APIHomeDir>
+    <APIDataDir>./API/Data</APIDataDir>
+    
+    <!-- API might be the name of a workspace OR a .dyalog-file (in APIHomeDir)
+    Extension is required!
+    -->
+    <API>app.dyalog</API>
+    <APIClassName>App</APIClassName>
+    
+    <APIPath>#.App</APIPath>
+    
+    <!-- API_Hosts: comma-separated list of hosts
+    Special values: 
+    inSitu - run within MS-Workspace (facilitates debugging, not recommend for productive use)
+    ::1 - ="localhost" for IPv6 ("127.0.0.1" may cause issues with Conga)
+    Currently APLProcess does not support linking to other machines, so you can only switch between
+    inSitu or ::1 currently - but APLProcess "may develop that ability" (MK),
+    so we're prepared for that already! ;-)
+    -->
+    <API_Hosts>inSitu</API_Hosts>
+    <API_Ports>9081,9082,9083,9084,9085,9086,9087,9088,9089,9090</API_Ports>
+</Application>

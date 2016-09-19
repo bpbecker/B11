@@ -1,0 +1,47 @@
+﻿:class index : B11_Regular
+
+    :field public t3settings
+    :field public name
+    :field public mail
+
+
+    ∇ Compose;R;mn
+      :Access public
+      Use'jBox'
+      Add _.title #.Boot.ms.Config.Name
+      Add _.Tabs('<i class="fa fa-table"></i> Data' '<i class="fa fa-magic"></i> Analysis' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
+    ∇
+
+
+    ∇ R←MakeTab i;ig
+      R←'.container' New _.div
+      :Select i
+      :Case 1
+      :Case 2
+      :Case 3
+          ig←'#t3settings'(R.Add _.Form).Add _.InputGrid
+          ig.Labels←'<i class="fa fa-user"></i>' '<i class="fa fa-at"></i>'
+          ig.Inputs←'name' 'mail'New¨_.EditField _.EditField
+          ig.Inputs[1 2].SetAttr⊂'style="width:30em;"'
+          ⍝ig.Inputs[1 2].SetAttr¨⊂¨(⊂'placeholder="'),¨'Name"' 'Email"'
+          ⍝ nope
+          ig.Inputs[1].SetAttr⊂'placeholder="Your Name"'
+          ig.Inputs[2].SetAttr⊂'placeholder="Email"'
+          sbtn←'style="margin-top:1em;" class="primBtn"'R.Add _.Button'<i class="fa fa-floppy-o"></i> Save'
+          sbtn.On'click' 'SaveTab3'
+      :EndSelect
+      R←R.Render
+    ∇
+
+    ∇ R←SaveTab3
+      :Access public
+      ⎕←'name=',Get'name'
+      ⎕←'mail=',Get'mail'
+      ⎕←'Save that data!'
+      
+
+       R←Execute 'green'#._.jBox.Notice '<i class="fa fa-check"></i> Settings saved.'
+    ∇
+
+
+:endclass

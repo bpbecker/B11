@@ -1,0 +1,1 @@
+/** special styling for PDS and the various templates...  **/.e-alt_row {	background:  #cacaca !important;	color: black;	}.e-columnheader{	background: #757575 !important;	color: black;	}

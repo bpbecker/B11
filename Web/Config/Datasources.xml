@@ -1,0 +1,14 @@
+<Datasources>
+ 
+  <Datasource>
+    <Name>kl55-64</Name>
+    <DSN>klassenweb</DSN>
+    <User>sa</User>
+    <Password>saRootPW</Password>
+  </Datasource>
+
+  <Datasource>
+    <Name>ZipCodes</Name>
+    <DriverOptions>DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%SiteRoot%\data\zipcodes.accdb;ExtendedAnsiSQL=1;MaxBufferSize=2048;</DriverOptions>
+  </Datasource>
+</Datasources>

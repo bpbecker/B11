@@ -1,0 +1,75 @@
+/*Template Body and Wrapper*/
+
+
+
+
+th.fa-info-circle:before {
+	content: "";
+}
+td.details-control {
+	color: #4242FF;
+	padding-right:0px;
+	padding-left:0px;
+	cursor:pointer;
+}
+
+.footer {
+	background-color:#f0f8ff;
+}
+
+.hidden {
+	display: none;
+}
+
+
+
+/* Bootstrap: form-groups and input-groups fill their container */
+/* http://stackoverflow.com/questions/30749619/why-arent-my-col-lg-shown-full-width/30750080#30750080  */
+.form-group {
+   width:100%;
+ }
+
+.input-group {
+   width:100%; 
+ }
+ 
+.red { color: red;}
+.green { color: green;}
+ 
+ 
+.sponsors {
+	background-color: #c9c9c9;
+}
+
+.cmnt {
+ 	padding: 2px 20px 4px 20px;
+ border-bottom: 1px solid gray;
+ border-top: 1px solid gray;
+  }
+ 
+.cmnt-odd {
+ 	background-color: #d0d0d0;
+ }
+ 
+.cmnt-even {
+ 	background-color: #e8e8e8;
+ } 
+ 
+.cmntfrom {
+ 	font-weight: bold;
+ }
+ 
+ /* Spamfalle mit verborgenen Eingabefeldern */
+ .honigPott {
+ 	display: none;
+ 	}
+  
+ 
+/* DataTable: Suchfeld auf gleicher Höhe wie Button-Element! */
+.dt-buttons btn-group {
+	display: inline;
+}
+.dataTables_filter {
+    display:  inline !important;
+    float:  right !important;
+}

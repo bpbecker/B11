@@ -1,0 +1,18 @@
+<Datasources>
+  <Datasource>
+    <Name>userlist</Name>
+    <DriverOptions>DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%SiteRoot%\data\userlist.accdb;ExtendedAnsiSQL=1;MaxBufferSize=2048;</DriverOptions>
+  </Datasource>
+  
+  <Datasource>
+    <Name>kl55-64</Name>
+    <DSN>kl55-64</DSN>
+    <User>sqlusr</User>
+    <Password>sqlusr</Password>
+  </Datasource>
+
+  <Datasource>
+    <Name>ZipCodes</Name>
+    <DriverOptions>DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=%SiteRoot%\data\zipcodes.accdb;ExtendedAnsiSQL=1;MaxBufferSize=2048;</DriverOptions>
+  </Datasource>
+</Datasources>

@@ -1,0 +1,13 @@
+<Server>
+    <Name>B11: Best British Bond Broker Business By Busy Brian Becker + Biene's Brave Baas</Name>
+    <AllowedHttpCommands>get,put,delete,post</AllowedHttpCommands>
+    <Lang>en</Lang>
+    <LogMessageLevel>1</LogMessageLevel> <!-- 0-none -1-all 1-error/important 2-warning 4-informational 8-Transactional -->
+    <Production>0</Production>         <!-- 1-running in production mode, 0-development mode (enable debugging framework) --> 
+    <ClassName>B11_Server</ClassName>    <!-- running specific server MiServer -->
+
+
+    <Ports>8080-8090</Ports>                         <!-- List of ports that MiServer can listen on -->
+    <Port>8080</Port>                                <!-- Preferred port that MiServer listens on -->
+
+</Server>
