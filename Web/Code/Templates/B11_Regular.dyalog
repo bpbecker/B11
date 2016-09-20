@@ -3,7 +3,6 @@
     :Field Public nl←⎕ucs 13
     :Field public RequiresLogin←1
     :field public title←'' ⍝ server.Config.Name would have been nicer, but we can't do that
-⍝    :field public showMsg    ⍝ vector with ⊂(type)(text)    where type=0=nothing, ¯2: error, ¯1=warning, 1=info, 2=success and text is a VECTOR with the text of the msg
 
 
     :include #.Strings
@@ -17,19 +16,21 @@
     ∇ Wrap;lang;server;mn
       :Access Public
       server←_Request.Server
-      :if '###'≡'###'SessionGet'showMsg'
-      _Request.Session.showMsg←⍬     ⍝ vector with ⊂(type)(text)    where type=0=nothing, ¯2: error, ¯1=warning, 1=info, 2=success and text is a VECTOR with the text of the msg
-:endif
+      :If '###'≡'###'SessionGet'showMsg'
+          _Request.Session.showMsg←⍬     ⍝ vector with ⊂(type)(text)    where type=0=nothing, ¯2: error, ¯1=warning, 1=info, 2=success and text is a VECTOR with the text of the msg
+      :EndIf
       Add _.link('' 'rel=icon' 'type=image/x-icon' 'href=/img/favicon.ico')
      
       :If title≡'' ⋄ title←server.Config.Name ⋄ :EndIf  ⍝ set a default
-     
+      ⎕←'*** Prepare for a crash! ***'
     ⍝ useful in dev: append ?fakeit=1 to URLs to get access despite not being signed in. (Remove in production)
       :If 0<2⊃⎕VFI⍕'0'Get'fakeit'
       :AndIf server.Config.Production=0      ⍝ better safe than sorry - make sure this is disabled in production!
           _Request.Session.UID←1
+          ∘∘∘
       :EndIf
-     
+      ∘∘∘
+      ⎕←'*** Whatttt? That did not crash???'
       ⍝ when page other than login is called: check if user is logged in,
       ⍝ otherwise redirect to index immediately (replacing all HTML of the response...)
       :If RequiresLogin
@@ -44,7 +45,7 @@
       ⍝ FA, Panel & jBox required for showMsg to display stuff, potentially via callbacks. So make sure they are always there.
       Use'faIcons'
       Use'jBox'
-      Use'dcPanel'  
+      Use'dcPanel'
       Use'⍕/Styles/style.css'                  ⍝ add a link to our CSS stylesheet
       Use'⍕/Syncfusion/assets/css/web/',theme,'/ej.widgets.all.min.css'
       Use'⍕/Syncfusion/assets/css/web/',theme,'/ej.theme.min.css'

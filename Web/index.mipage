@@ -14,10 +14,13 @@
 
 
     ∇ R←MakeTab i;ig
-      R←'.container' New _.div
+      R←'.container'New _.div
       :Select i
       :Case 1
+          xx←(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
+          ∘∘∘Write code∘∘∘
       :Case 2
+     ⍝ ∘∘∘Write code∘∘∘
       :Case 3
           ig←'#t3settings'(R.Add _.Form).Add _.InputGrid
           ig.Labels←'<i class="fa fa-user"></i>' '<i class="fa fa-at"></i>'
@@ -38,9 +41,9 @@
       ⎕←'name=',Get'name'
       ⎕←'mail=',Get'mail'
       ⎕←'Save that data!'
-      
-
-       R←Execute 'green'#._.jBox.Notice '<i class="fa fa-check"></i> Settings saved.'
+     
+     
+      R←Execute'green'#._.jBox.Notice'<i class="fa fa-check"></i> Settings saved.'
     ∇
 
 
