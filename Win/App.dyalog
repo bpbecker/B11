@@ -200,9 +200,9 @@
     ∇
 
     ∇ (rc msg data)←ClientSummary cid;pdir;sdir
-         ⍝ returns [;1] portfolio name [;2] number commodities [;3] number scenarios [;4] created [;5] last update
+         ⍝ returns [;1] portfolio name [;2] number commodities [;3] number scenarios [;4] created [;5] last update [;6] pid [;7] pdet
       :Access public shared
-      (rc msg data)←0 ''(0 5⍴'' 0 0 '' '')
+      (rc msg data)←0 ''(0 7⍴'' 0 0 '' '')
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
           :If cid∊getClientDir[;1]
@@ -215,6 +215,7 @@
       :EndHold
       :If ~0∊⍴pdir
           data←pdir[;4 5],({¯1+≢⍵}⌸pdir[;1],sdir[;2]),#.utils.fmtTs¨pdir[;6 7]
+          data,←pdir[;1 3]  ⍝ MBaas: added pid & details
       :EndIf
     ∇
 
@@ -277,7 +278,7 @@
       ind←cdir[;4]⍳⊂userid
       rc←5×notfound←ind>⊃⍴cdir
       msg←(1+notfound)⊃'' 'userid not found'
-      data←((cdir[;6],⊂#.utils.hash userid)[ind])#.utils.salt
+      data←(⊃(cdir[;6],⊂#.utils.hash userid)[ind])#.utils.salt
     ∇
 
     ∇ (rc msg data)←Login2(userid hashpass newsalt);cdir;ind;notfound
@@ -346,7 +347,7 @@
           :If 0=ind←dir[;3](#.utils.(iotaz cis))⊂email ⋄ (rc msg)←2 'email not found' ⋄ →Done ⋄ :EndIf
           :If 0∊⍴rkey←⊃dir[ind;7] ⋄ (rc msg)←6 'no reset key' ⋄ →Done ⋄ :EndIf
           :If rkey≢resetKey ⋄ (rc msg)←7 'reset key mismatch' ⋄ →Done ⋄ :EndIf
-          :If (⊃dir[ind;8])≥#.utils.DateToIDN ⎕TS-0 0 0 1 0 0 0 ⋄ (rc msg)←6 'reset request expired' ⋄ →Done ⋄ :EndIf ⍝ allow reset within 1 hour
+          :If (⊃dir[ind;8])≥#.utils.DateToIDN ⎕TS+0 0 0 1 0 0 0 ⋄ (rc msg)←6 'reset request expired' ⋄ →Done ⋄ :EndIf ⍝ allow reset within 1 hour
           dir[ind;5 6 7 8]←hashPass salt''⍬
           putClientDir dir
      Done:⎕FHOLD ⍬

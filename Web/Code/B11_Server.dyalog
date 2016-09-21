@@ -6,17 +6,18 @@
       :Access public  Override
       #.Boot.ms.Config.Application←#.Boot.ReadConfiguration'Application'
       InitAPIServerCfg #.Boot.ms.Config.Application
+      #.Crypt.Init Config.AppRoot,'/Code/CryptDlls/'
     ∇
 
     ∇ InitAPIServerCfg ref;t;ns1
-    :access private
+      :Access private
     ⍝ Initialise Server-Config in namespace ref by
     ⍝ re-formatting some variables
       :With ref
         ⍝ API_Ports: numeric vector of possible port-numbers
           API_Ports←#.HtmlUtils.enlist 2⊃¨⎕VFI¨','#.Utils.penclose API_Ports
         ⍝ API_Hosts: list of all hosts (currently APLProcess only works on current machine, future updates might make it work with remote machines as well)
-          API_Hosts←⊂¨','#.Utils.penclose API_Hosts    
+          API_Hosts←⊂¨','#.Utils.penclose API_Hosts
         ⍝ IPsPorts is the list of all hosts, ports and a flag whether a combo is active or not (to quickly find available combinations)
           IPsPorts←↑,⍉API_Hosts∘.,API_Ports    ⍝ [;1] Host, [;2]=Port  ⍝ ⍉ ensures "load-balancing" across all involved machines! (primitve lb, at least)
           IPsPorts,←0                          ⍝ [;3] is active

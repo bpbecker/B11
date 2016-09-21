@@ -1,4 +1,4 @@
-﻿:Class App
+﻿:Namespace App
     (⎕IO ⎕ML ⎕WX)←1 1 3
 
 ⍝ Note: Holding is being done both with ⎕FHOLD and :Hold
@@ -34,8 +34,11 @@
     ∇ (rc msg pid)←AddPortfolio(cid pname port);dir;ptr
       :Access public shared
       (rc msg)←0 ''
-      :Hold 'portfolio'
-          ⎕FHOLD portfolioTn
+      :Hold 'client' 'portfolio'
+          ⎕FHOLD clientTn,portfolioTn
+          :If ~cid∊getClientDir[;1]
+              (rc msg)←8 'client id not found' ⋄ →Done
+          :EndIf
           dir←getPortfolioDir
           pid←nextPortfolioId
           ptr←nextPortfolioSlot dir
@@ -237,11 +240,20 @@
     ∇
 
 
-    ∇ RunScenario sid
+    ∇ (rc msg r)←RunScenario sid;today;scen;port;max;dates;days;portfolio;data
       :Access public shared
+      (rc msg r)←0 '' ''
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
-     
+          scen←GetScenario sid
+          port←GetPortfolio(1⊃3⊃scen)[2]
+          today←⌊#.utils.DateToIDN ⎕TS
+          max←⌈/dates←#.utils.DateToIDN¨(2⊃3⊃scen)[;1]
+          days←max-today
+          data←↑(1↓{⍵,(¯1↑⍵)+.01×⌊.5+100×¯.5+?0}⍣days)¨(portfolio←2⊃3⊃port)[;3]
+          data,⍨←portfolio[;1 3]
+          data⍪⍨←(⊂'Commodity'), {3↑#.utils.IDNToDate ⍵}¨today,today+⍳days
+          data putScenarioResults (1⊃3⊃scen)[3]
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
@@ -278,7 +290,7 @@
       :ElseIf hashpass≢#.utils.hash newsalt,⊃cdir[ind;5]
           (rc msg data)←6 'password mismatch' ''
       :Else
-          (rc msg data)←0 ''(cdir[ind;1 4])
+          (rc msg data)←0 ''(⊃cdir[ind;1])
       :EndIf
     ∇
 
@@ -296,8 +308,10 @@
           :If 0∊⍴userid ⋄ (rc msg)←1 'empty userid' ⋄ →Done ⋄ :EndIf
           :If 0∊⍴email ⋄ (rc msg)←2 'empty email' ⋄ →Done ⋄ :EndIf
           :If 0∊⍴name ⋄ (rc msg)←3 'empty name' ⋄ →Done ⋄ :EndIf
+          :If ~0∊⍴dir
           :If (⊂userid)∊dir[;4] ⋄ (rc msg)←1 'userid in use' ⋄ →Done ⋄ :EndIf
           :If (⊂email)(∊#.utils.cis)dir[;3] ⋄ (rc msg)←2 'email in use' ⋄ →Done ⋄ :EndIf
+          :EndIf
           cid←nextClientId
           putClientDir dir⍪cid name email userid pwd salt''⍬
      Done:⎕FHOLD ⍬
@@ -370,11 +384,23 @@
     ∇
 
     ∇ putScenarioDir dir
-      dir ⎕FREPLACE ScenarioTn,2
+      dir ⎕FREPLACE scenarioTn,2
     ∇
 
     ∇ p putPortfolio ptr
       p ⎕FREPLACE portfolioTn,ptr
+    ∇
+
+    ∇ p←getPortfolio ptr
+      p←⎕FREAD portfolioTn,ptr
+    ∇
+
+    ∇ p←getScenarioParameters ptr
+      p←⎕FREAD scenarioTn,ptr
+    ∇
+
+    ∇ r←getScenarioResults ptr
+      r←⎕FREAD scenarioTn,ptr+1
     ∇
 
     ∇ p putScenarioParameters ptr
@@ -395,7 +421,7 @@
 
     ∇ r←nextPortfolioSlot dir;n
       r←⊃dir[;3]~⍨5↓⍳n←2⊃⎕FSIZE portfolioTn
-      :If r=n ⋄ (0 5⍴2 2 2 3.1 ⎕TS)⎕FAPPEND portfolioTn ⋄ :EndIf
+      :If r=n ⋄ (0 5⍴'' 2 2 3.1 ⎕TS)⎕FAPPEND portfolioTn ⋄ :EndIf
     ∇
 
     ∇ r←nextScenarioId
@@ -410,15 +436,68 @@
       :EndIf
     ∇
 
-    ∇ r←getScenario sid
+    ∇ (rc msg data)←GetScenario sid;dir
+      :Access public shared
+      (rc msg data)←0 '' ''
+      :Trap 3
+          dir←sid{⍵[⍵[;1]⍳⊃⍺;]}getScenarioDir
+          data←dir(getScenarioParameters dir[3])(getScenarioResults dir[3])
+      :Else
+          (rc msg)←9 'scenario not found'
+      :EndTrap
+    ∇
+
+    ∇ (rc msg data)←GetPortfolio pid;dir
+      :Access public shared
+      (rc msg data)←0 '' ''
+      :Trap 3
+          dir←pid{⍵[⍵[;1]⍳⊃⍺;]}getPortfolioDir
+          data←dir(getPortfolio dir[3])
+      :Else
+          (rc msg)←9 'scenario not found'
+      :EndTrap
+    ∇
+
+
+    :endsection
+
+    :section Misc
+
+    ∇ port←RandomPortfolio;cdir;n;inds;r;qty
+      ⍝ generate a random portfolio
+      :Access public shared
+     
+      cdir←getCommodityDir
+      n←⍬⍴⍴cdir
+      inds←(r←?n)?n
+      qty←100×?r⍴20
+      port←(cdir[inds;1 3],qty)[;1 3 2],⊂⎕TS
+    ∇
+
+    ∇ CleanupFiles;mask;comps
+      ⍝ Cleanup orphaned data during testing
+      :Access public shared
+     
+      :Hold 'client' 'portfolio' 'scenario'
+          ⎕FHOLD clientTn,portfolioTn,scenarioTn
+          :If ~∧/mask←getPortfolioDir[;2]∊getClientDir[;1] ⍝ orphaned portfolios
+              putPortfolioDir mask⌿getPortfolioDir
+              comps←(5↓⍳¯1+2⊃⎕FSIZE portfolioTn)~getPortfolioDir[;3]
+              ''∘putPortfolio¨comps
+          :EndIf
+          :If ~∧/mask←getScenarioDir[;2]∊getPortfolioDir[;1] ⍝ orphaned scenarios
+              putPortfolioDir mask⌿getPorfolioDir
+              comps←(5↓⍳¯1+2⊃⎕FSIZE scenarioTn)~getScenarioDir[;3]∘.+0 1
+              ''∘putScenarioParameters¨comps
+          :EndIf
+     Done:⎕FHOLD ⍬
+      :EndHold
     ∇
 
     :endsection
 
     :section Unit_Tests
 
-
-
     :endsection
 
-:EndClass
+:EndNamespace
