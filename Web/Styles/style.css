@@ -34,7 +34,7 @@
     font-family: serif;
     font-size: medium;
     box-shadow: black 1px 1px 5px;
-    transition: 0.1s;
+    transition: 0.2s;
     margin-left: 50%;
     margin-top: 0.5em;
 }
@@ -44,6 +44,10 @@
     margin-left: calc(50% + 1px);
     box-shadow: none;
     outline: none;
+}
+
+.primBtn:hover{
+    border-color:black;
 }
 
 .noscript {
