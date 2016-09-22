@@ -35,7 +35,7 @@
           ig←'#login'form.Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-tag' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Luserid' 'Lpswd'
-          ig.Inputs[1 2].SetAttr⊂'style="width:30em;"'            ⍝ set width of input fields
+          ⍝ig.Inputs[1 2].SetAttr⊂'style="width:30em;"'            ⍝ set width of input fields
           ig.Inputs[1 2].SetAttr'placeholder="User ID"'('placeholder="Password"' 'type="Password"')
           (form.Add _.input).(type id name)←'hidden' 'Hpswd' 'Hpswd'
           (form.Add _.input).(type id name)←'hidden' 'Lsalt' 'Lsalt'
@@ -61,7 +61,7 @@
           ig←'#signup'(form←R.Add _.Form).Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-user' 'fa-tag' 'fa-at' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Sname' 'Suserid' 'Smail' 'Spswd'
-          ig.Inputs.SetAttr⊂'style="width:30em;"'
+          ⍝ig.Inputs.SetAttr⊂'style="width:30em;"'
           ig.Inputs[1].SetAttr⊂'placeholder="Name"'
           ig.Inputs[2].SetAttr⊂'placeholder="UserID"'
           ig.Inputs[3].SetAttr⊂'placeholder="Email"'

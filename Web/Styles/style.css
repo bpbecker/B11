@@ -35,7 +35,7 @@
     font-size: medium;
     box-shadow: black 1px 1px 5px;
     transition: 0.2s;
-    margin-left: 50%;
+    margin-left: 68%;
     margin-top: 0.5em;
 }
 
@@ -89,6 +89,10 @@
     width: 68%;
 }
 
+.login_input >input, .signup_input>input{
+    width: 40vw;
+}
+
 .floatRight {
     float: right
 }
@@ -103,6 +107,7 @@ html {
 body {
     background: linear-gradient(#B11,transparent);
     height: 100vh;
+    overflow: auto;
 }
 
 @font-face {
