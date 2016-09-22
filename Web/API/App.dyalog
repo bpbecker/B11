@@ -1,4 +1,4 @@
-﻿:Namespace App
+﻿:Class App
     (⎕IO ⎕ML ⎕WX)←1 1 3
 
 ⍝ Note: Holding is being done both with ⎕FHOLD and :Hold
@@ -500,4 +500,4 @@
 
     :endsection
 
-:EndNamespace
+:EndClass

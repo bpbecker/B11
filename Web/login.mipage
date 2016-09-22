@@ -16,17 +16,14 @@
       RequiresLogin←0
       Use'jsSHA'
       title←'B11 - Login'
-      Add _.style ScriptFollows
-      ⍝ .container { margin: 10vh; height: 75%; width: 75%;    }
-     
+      
       R←'.container'Add _.div
       R Position'center' 'center' '.container'
-     
-      '#claim'R.Add _.p'More Bang For The Buck'
      
       MyTabs←R.Add _.Tabs
       MyTabs.Sections←MakeTab¨⍳2
       MyTabs.Titles←((New _.Icon'fa-sign-in')' Login')((New _.Icon'fa-user-plus')' Sign Up')
+      MyTabs.Theme←'0'
     ∇
 
     ∇ R←MakeTab i;ig;form;salt;sbtn
@@ -71,7 +68,7 @@
           ig.Inputs[4].SetAttr'placeholder="Password"' 'type="Password"'
           (form.Add _.input).(type name value)←'hidden' 'Salt' 'random salt goes here'
      
-          sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Signup')
+          sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Sign Up')
           sbtn.On'click' 'Signup'
      
       :EndSelect

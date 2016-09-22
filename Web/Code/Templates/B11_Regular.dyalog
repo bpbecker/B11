@@ -1,4 +1,4 @@
-﻿:Class B11_Regular : MiPage
+:Class B11_Regular : #.MiPage
 
     :Field Public nl←⎕ucs 13
     :Field public RequiresLogin←1
@@ -19,7 +19,7 @@
       :If '###'≡'###'SessionGet'showMsg'
           _Request.Session.showMsg←⍬     ⍝ vector with ⊂(type)(text)    where type=0=nothing, ¯2: error, ¯1=warning, 1=info, 2=success and text is a VECTOR with the text of the msg
       :EndIf
-      Add _.link('' 'rel=icon' 'type=image/x-icon' 'href=/img/favicon.ico')
+      ⍝Add _.link('' 'rel=icon' 'type=image/x-icon' 'href=/img/favicon.ico')
      
       :If title≡'' ⋄ title←server.Config.Name ⋄ :EndIf  ⍝ set a default
       ⎕←'*** Prepare for a crash! ***'
@@ -57,7 +57,8 @@
      
       hd←New _.noscript
       hd.Add _.div'Limited functionality w/o JavaScript!' 'class="class=col-lg-10 noscript"'
-      hd,←'#title'New _.h1 server.Config.Name
+      hd,←'#title'New _.h1 (5↓server.Config.Name)
+      hd,←'#logo'New _.div(('B11'New _.span'B11')('#slogan'New _.p 'more Bang for the Buck'))
       :While 0<⍴_Request.Session.showMsg
           :If 0>⊃1⊃_Request.Session.showMsg   ⍝ there is an errormsg (or a warning) to show!
               OnLoad,←_.jBox.Modal(New _.Panel((,2⊃t)(t[1]⊃'warn' 'error')))
