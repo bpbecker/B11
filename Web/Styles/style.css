@@ -40,8 +40,8 @@
 }
 
 .primBtn:active {
-    margin-top: 1px;
-    margin-left: 1px;
+    margin-top: calc(0.5em + 1px);
+    margin-left: calc(50% + 1px);
     box-shadow: none;
     outline: none;
 }
