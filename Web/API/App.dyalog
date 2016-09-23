@@ -287,7 +287,7 @@
       ind←cdir[;4]⍳⊂userid
       :If notfound←ind>⊃⍴cdir
           (rc msg data)←5 'userid not found' ''
-      :ElseIf hashpass≢#.utils.hash newsalt,⊃cdir[ind;5]
+      :ElseIf hashpass≢#.Strings.stringToHex #.utils.hash newsalt,⊃cdir[ind;5]
           (rc msg data)←6 'password mismatch' ''
       :Else
           (rc msg data)←0 ''(⊃cdir[ind;1])

@@ -12,14 +12,13 @@
     :field UserSalt←''
     :field TempSalt←''
 
-    ∇ Compose
+    ∇ Compose;R;MyTabs
       :Access public
       RequiresLogin←0
       Use'jsSHA'
       title←'B11 - Login'
-      
-      R←'.container'Add _.div
-      R Position'center' 'center' '.container'
+     
+      (R←'.container'Add _.div)Position'center' 'center' '.container'
      
       MyTabs←'#loginTabs'R.Add _.Tabs
       MyTabs.Sections←MakeTab¨⍳2
@@ -27,11 +26,12 @@
       MyTabs.Theme←'0'
     ∇
 
-    ∇ R←MakeTab i;ig;form;salt;sbtn
+
+    ∇ R←MakeTab i;ig;form;salt;sbtn;msg
       R←'.container'New _.div
-      msg←'#welcome'R.Add _.div'Welcome on your serious broker-site. If you''re a returning customer, please login using your credentials.'
-      msg.Add _.jBox'Tooltip' 'Sorry, this function is not yet implemented!' '(Forgot your password?)'
-      msg.Add 'As a new visitor on our site: welcome! Most functionality will require a Login, so why not signup right now? (Hint: it''s free!)'
+      msg←'#welcome'R.Add _.div(_.b 'Welcome!')_.br'If you''re a returning customer, please login using your credentials. '
+      msg.Add(_.jBox'Tooltip' 'Sorry, this function is not yet implemented!' '(Forgot your password?)')_.br
+      msg.Add'If you''re a new visitor, most functionality will require you to login, so why not signup right now? (Hint:it''s free!)' _.br _.br
      
       :Select i
       :Case 1
@@ -39,7 +39,6 @@
           ig←'#login'form.Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-tag' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Luserid' 'Lpswd'
-          ⍝ig.Inputs[1 2].SetAttr⊂'style="width:30em;"'            ⍝ set width of input fields
           ig.Inputs[1 2].SetAttr'placeholder="User ID"'('placeholder="Password"' 'type="Password"')
           (form.Add _.input).(type id name)←'hidden' 'Hpswd' 'Hpswd'
           (form.Add _.input).(type id name)←'hidden' 'Lsalt' 'Lsalt'
@@ -50,16 +49,15 @@
         ⍝ Submit-Button
           sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Login')
           sbtn.On'click' 'Login'(('uid' 'val' '#Luserid')('hpwd' 'val' '#Hpswd')('tslt' 'val' '#Tsalt'))
+     
           Add _.Script ScriptFollows
         ⍝ function HashPass(){
         ⍝   var hashObj = new jsSHA("SHA-256","TEXT");
         ⍝   hashObj.update(($("#Lsalt").val())+$("#Lpswd").val());
-        ⍝   temp = hashObj.getHash("HEX");
-        ⍝ console.log("Salting pswd " + $("#Lpswd").val() + " with salt " + $("#Lsalt").val());
-        ⍝ console.log("hashed result: " + temp );
+        ⍝   temp = hashObj.getHash("HEX",{"outputUpper":true});
+        ⍝   hashObj = new jsSHA("SHA-256","TEXT");
         ⍝   hashObj.update(($("#Tsalt").val())+temp);
-        ⍝   $("#Hpswd").val(hashObj.getHash("HEX"));
-        ⍝ console.log("salting that with " + $("#Tsalt").val() + " gives result Hpswd=" + $("#Hpswd").val());
+        ⍝   $("#Hpswd").val(hashObj.getHash("HEX",{"outputUpper":true}));
         ⍝ }
      
      
@@ -68,24 +66,26 @@
           ig←'#signup'(form←R.Add _.Form).Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-user' 'fa-tag' 'fa-at' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Sname' 'Suserid' 'Smail' 'Spswd'
-          ⍝ig.Inputs.SetAttr⊂'style="width:30em;"'
+        ⍝  ig.Inputs.SetAttr⊂'style="width:30em;"'
           ig.Inputs[1].SetAttr⊂'placeholder="Name"'
           ig.Inputs[2].SetAttr⊂'placeholder="UserID"'
           ig.Inputs[3].SetAttr⊂'placeholder="Email"'
           ig.Inputs[4].SetAttr'placeholder="Password"' 'type="Password"'
           ig.Inputs[4].On'change' 0 '' 'SHashPass()'
-          (form.Add _.input).(type id name value)←'hidden' 'Ssalt' 'Ssalt'Ssalt∆
-          _Request.Session.sslt←Ssalt∆  ⍝ tmp - debugging MB
+     
+          'Ssalt'form.Add _.Input'hidden'Ssalt∆
           (form.Add _.input).(type name)←'hidden' 'Lpswd'
+     
+          sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Signup')
+          sbtn.On'click' 'Signup'(('name' 'val' '#Sname')('mail' 'val' '#Smail')('uid' 'val' '#Suserid')('hpwd' 'val' '#Lpswd'))
+     
           Add _.Script ScriptFollows
         ⍝ function SHashPass(){
         ⍝   var hashObj = new jsSHA("SHA-256","TEXT");
         ⍝   hashObj.update(($("#Ssalt").val())+$("#Spswd").val());
-        ⍝   $("#Lpswd").val(hashObj.getHash("HEX"));
+        ⍝   $("#Lpswd").val(hashObj.getHash("HEX",{"outputUpper":true}));
         ⍝ }
      
-          sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Signup')
-          sbtn.On'click' 'Signup'(('name' 'val' '#Sname')('mail' 'val' '#Smail')('uid' 'val' '#Suserid')('hpwd' 'val' '#Lpswd'))
       :EndSelect
     ∇
 
@@ -96,16 +96,16 @@
       R,←Execute'#Tsalt'#._JSS.Val(TempSalt←2⊃3⊃ret)
     ∇
 
-    ∇ R←Login;ret;newUrl;newHash;origSalt;newSalt
+    ∇ R←Login;ret;newUrl;newHash;origSalt;newSalt;Luserid;Hpswd;tSalt
       :Access public
-      Luserid ←Get'uid'
-      Hpswd ←Get'hpwd'
+      Luserid←Get'uid'
+      Hpswd←Get'hpwd'
       tSalt←Get'tslt'
-      
       ret←(SessionGet'APIref').CallAPI('Login2'(Luserid Hpswd tSalt))
       :If 0=⊃ret
           newUrl←(_Request.GetHeader'origin'),'/index'  ⍝ Host
           _Request.Session.(UID tUID)←3⊃ret
+         ⍝ _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
           R←Execute('window.location="',newUrl,'";')
           R,←Execute _.jBox.Modal New _.Panel('Welcome back, ',_Request.Session.tUID)'success'
       :Else
@@ -115,9 +115,7 @@
 
     ∇ R←Signup
       :Access public
-      Sname←Get'name'⋄Smail←Get'mail'⋄Suserid←Get'uid'⋄Hpswd←Get'hpwd'
-⎕←'_Request.Session.sslt≡Ssalt∆ > ',      _Request.Session.sslt≡Ssalt∆  ⍝ tmp, debugging MB
-      ∘∘∘
+      Sname←Get'name' ⋄ Smail←Get'mail' ⋄ Suserid←Get'uid' ⋄ Hpswd←Get'hpwd'
       R←(SessionGet'APIref').CallAPI'AddClient'(Sname Smail Suserid Hpswd Ssalt∆)
       :If 0=⍬⍴R  ⍝ success
           R←Execute'green'_.jBox.Notice'New user created!'
