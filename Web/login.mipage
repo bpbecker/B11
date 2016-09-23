@@ -106,10 +106,9 @@
       :If 0=⊃ret
           newUrl←(_Request.GetHeader'origin'),'/index'  ⍝ Host
           _Request.Session.(UID tUID)←3⊃ret
-         ⍝ _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
+          _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
           R←Execute('window.location="',newUrl,'";')
-          R,←Execute _.jBox.Modal New _.Panel('Welcome back, ',_Request.Session.tUID)'success'
-      :Else
+     :Else
           R←Execute _.jBox.Modal New _.Panel(2⊃ret)'error'
       :EndIf
     ∇
