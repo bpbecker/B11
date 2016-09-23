@@ -74,16 +74,17 @@
           ig.Inputs[4].On'change' 0 '' 'SHashPass()'
      
           'Ssalt'form.Add _.Input'hidden'Ssalt∆
+          'Shpw'form.Add _.Input'hidden' ''  ⍝ hashed pswd used for signup
           (form.Add _.input).(type name)←'hidden' 'Lpswd'
      
           sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Signup')
-          sbtn.On'click' 'Signup'(('name' 'val' '#Sname')('mail' 'val' '#Smail')('uid' 'val' '#Suserid')('hpwd' 'val' '#Lpswd'))
+          sbtn.On'click' 'Signup'(('name' 'val' '#Sname')('mail' 'val' '#Smail')('uid' 'val' '#Suserid')('hpwd' 'val' '#Shpw'))
      
           Add _.Script ScriptFollows
         ⍝ function SHashPass(){
         ⍝   var hashObj = new jsSHA("SHA-256","TEXT");
         ⍝   hashObj.update(($("#Ssalt").val())+$("#Spswd").val());
-        ⍝   $("#Lpswd").val(hashObj.getHash("HEX",{"outputUpper":true}));
+        ⍝   $("#Shpw").val(hashObj.getHash("HEX",{"outputUpper":true}));
         ⍝ }
      
       :EndSelect
@@ -92,7 +93,7 @@
     ∇ R←GetSalt;ret
       :Access public
       ret←(SessionGet'APIref').CallAPI('Login1'_value)
-      R←Execute'#Lsalt'#._JSS.Val(UserSalt←1⊃3⊃ret)
+      R←Execute'#Lsalt'#._JSS.Val(UserSalt←3 1⊃ret )
       R,←Execute'#Tsalt'#._JSS.Val(TempSalt←2⊃3⊃ret)
     ∇
 

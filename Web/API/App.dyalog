@@ -278,7 +278,7 @@
       ind←cdir[;4]⍳⊂userid
       rc←5×notfound←ind>⊃⍴cdir
       msg←(1+notfound)⊃'' 'userid not found'
-      data←(⊃(cdir[;6],⊂#.utils.hash userid)[ind])#.utils.salt 32
+      data←(⊃(cdir[;6],⊂#.utils.hash userid)[ind])(#.utils.salt 32)
     ∇
 
     ∇ (rc msg data)←Login2(userid hashpass newsalt);cdir;ind;notfound

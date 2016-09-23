@@ -1,4 +1,4 @@
-:Class B11_Regular : MiPage
+﻿:Class B11_Regular : MiPage
 ⍳
     :Field Public nl←⎕ucs 13
     :Field public RequiresLogin←1
@@ -34,15 +34,13 @@ z←1
       :If '###'≡'###'SessionGet'showMsg'
           _Request.Session.showMsg←⍬     ⍝ vector with ⊂(type)(text)    where type=0=nothing, ¯2: error, ¯1=warning, 1=info, 2=success and text is a VECTOR with the text of the msg
       :EndIf
-      ⍝Add _.link('' 'rel=icon' 'type=image/x-icon' 'href=/img/favicon.ico')
      
       :If title≡'' ⋄ title←server.Config.Name ⋄ :EndIf  ⍝ set a default
-      ⎕←'*** Prepare for a crash! ***'
+
     ⍝ useful in dev: append ?fakeit=1 to URLs to get access despite not being signed in. (Remove in production)
       :If 0<2⊃⎕VFI⍕'0'Get'fakeit'
       :AndIf server.Config.Production=0      ⍝ better safe than sorry - make sure this is disabled in production!
           _Request.Session.UID←1
-          ∘∘∘
       :EndIf
       ⍝ when page other than login is called: check if user is logged in,
       ⍝ otherwise redirect to index immediately (replacing all HTML of the response...)
@@ -71,7 +69,13 @@ z←1
       ⍝ Sorry, hardcoding name here so that it can be made responsive
       '.show-md' tit.Add _.span'B11: '
       tit.Add _.span'Best British Bond Broker Business'
-      '.show-lg'tit.Add _.span'By Bold Brian Becker &amp; Brave Biene''s Busy Baasi'
+      '.show-md'tit.Add _.span' By'
+      '.show-lg'tit.Add _.span' Bold Brian'
+      '.show-md'tit.Add _.span' Becker'
+      '.show-md'tit.Add _.span' &amp;'
+      '.show-lg'tit.Add _.span' Brave Biene''s Busy '
+      '.show-md'tit.Add _.span'Baas'
+      '.show-lg'tit.Add _.span'i'
       hd,←'#logo'New _.div(('B11'New _.span'B11')('#slogan'New _.p 'more Bang for the Buck'))
       :While 0<⍴_Request.Session.showMsg
           :If 0>⊃1⊃_Request.Session.showMsg   ⍝ there is an errormsg (or a warning) to show!

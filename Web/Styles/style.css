@@ -1,26 +1,3 @@
-/*.primBtn {
-    background-image: linear-gradient(to bottom,#337ab7 0,#265a88 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff337ab7', endColorstr='#ff265a88', GradientType=0);
-    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
-    background-repeat: repeat-x;
-    background-color: #265a88;
-    font-size: 150%;
-    color: white;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.15),0 1px 1px rgba(0,0,0,.075);
-    -webkit-appearance: button;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    display: inline-block;
-    padding: 6px 12px;
-    margin-bottom: 0;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.42857143;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: middle;
-}
-*/
 .dc-tabs>label {
     font-size: larger;
 }
@@ -35,7 +12,7 @@
     font-size: medium;
     box-shadow: black 1px 1px 5px;
     transition: 0.2s;
-    margin-left: 68%;
+    margin-left: 50%;
     margin-top: 0.5em;
 }
 
@@ -89,10 +66,6 @@
     width: 68%;
 }
 
-.login_input >input, .signup_input>input{
-    width: 40vw;
-}
-
 .floatRight {
     float: right
 }
@@ -107,10 +80,31 @@ html {
 body {
     background: linear-gradient(#B11,transparent);
     height: 100vh;
-    overflow: auto;
 }
 
 @font-face {
     font-family: Organica;
     src: url("Kingthings Organica.ttf");
+}
+.pfitemcnt {/* Portfolio Item-Counter (in PF-Tabs) */
+ 	float: right;
+ 	border: thin solid grey; border-radius: 5px;
+ 	background-color: orange;
+ 	color: black;
+ }
+ 
+ .pftitle {/* Portfolio-Title (PF-Tabs) */
+	background-color: yellow; 	
+ }
+ 
+ 
+ /* Extra-Small devices  */
+@media (max-width: 768px) { 
+	.show-lg {	display: none;}
+	.show-md {	display: none;}
+}
+
+/* Medium devices  */
+@media (min-width: 768px) AND (max-width: 1023px) { 
+	.show-lg {	display: none;}
 }

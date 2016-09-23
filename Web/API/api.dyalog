@@ -2,17 +2,17 @@
 
     ∇ R←CallAPI arg;exec;id;⎕TRAP
       ⎕TRAP←0 'S'  ⍝ disable all trapping in outer fns...
-      ⎕SE.Dyalog.Utils.disp arg
+      ⎕SE.Dyalog.Utils.disp 'CallAPI ⍵='arg
       (id arg)←arg
       exec←((3=⍴⍴arg)/'(3⊃arg)'),('iAPI.',1⊃arg),(1<⍴arg)/' 2⊃arg'
       :Trap Trapping/0
           :With id
-              ⎕←R←⍎exec
+              R←⍎exec
           :EndWith
       :Else
-          ⎕←R←1(⎕DM)
+          R←1(⎕DM)
       :EndTrap
-      ⎕SE.Dyalog.Utils.disp R
+      ⎕SE.Dyalog.Utils.disp 'CallAPI R='R
     ∇
 
 
