@@ -1,9 +1,8 @@
-:Class B11_Regular : #.MiPage
-
+:Class B11_Regular : MiPage
+⍳
     :Field Public nl←⎕ucs 13
     :Field public RequiresLogin←1
     :field public title←'' ⍝ server.Config.Name would have been nicer, but we can't do that
-
 
     :include #.Strings
     :include #.HtmlUtils
@@ -47,12 +46,6 @@ z←1
       :EndIf
       ⍝ when page other than login is called: check if user is logged in,
       ⍝ otherwise redirect to index immediately (replacing all HTML of the response...)
-      :If RequiresLogin
-      :AndIf ~IfInstance'login'
-      :AndIf 0=2⊃⎕VFI⍕'0'SessionGet'UID'   ⍝ Session-Variable "UID" will hold a (numeric) UserId (or 0 if user if not logged in)
-          _Request.Session.UID←0
-          _Request.Redirect'/login.mipage'
-      :EndIf
      
       Use'⍕/Styles/reset.css'
       Use'JQuery'
