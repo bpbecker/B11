@@ -13,7 +13,23 @@
     ⍝ stored in:
     ⍝ MiServer\PlugIns\Syncfusion-14.2.0.26\assets\css\web\
 
-    ∇ Wrap;lang;server;mn
+
+
+∇ z←PreFlightCheck
+:access public
+z←1
+
+      :If RequiresLogin
+      :AndIf ~IfInstance'login'
+      :AndIf 0=2⊃⎕VFI⍕'0'SessionGet'UID'   ⍝ Session-Variable "UID" will hold a (numeric) UserId (or 0 if user if not logged in)
+          _Request.Session.UID←z←0
+          _Request.Redirect'/login.mipage'
+      :EndIf
+'PreFlightCheck=',z
+
+∇
+
+    ∇ {r}←Wrap;lang;server;mn
       :Access Public
       server←_Request.Server
       :If '###'≡'###'SessionGet'showMsg'
@@ -57,7 +73,12 @@
      
       hd←New _.noscript
       hd.Add _.div'Limited functionality w/o JavaScript!' 'class="class=col-lg-10 noscript"'
-      hd,←'#title'New _.h1 (5↓server.Config.Name)
+      ⍝ hd,←'#title'New _.h1 (5↓server.Config.Name)
+      hd,←tit←'#title'New _.h1
+      ⍝ Sorry, hardcoding name here so that it can be made responsive
+      '.show-md' tit.Add _.span'B11: '
+      tit.Add _.span'Best British Bond Broker Business'
+      '.show-lg'tit.Add _.span'By Bold Brian Becker &amp; Brave Biene''s Busy Baasi'
       hd,←'#logo'New _.div(('B11'New _.span'B11')('#slogan'New _.p 'more Bang for the Buck'))
       :While 0<⍴_Request.Session.showMsg
           :If 0>⊃1⊃_Request.Session.showMsg   ⍝ there is an errormsg (or a warning) to show!
@@ -90,7 +111,7 @@
      
     ⍝ call the base class Wrap function
       :Trap 991
-          ⎕BASE.Wrap
+          r←⎕BASE.Wrap
       :Else
           .
       :EndTrap
@@ -108,6 +129,21 @@
       A1←#.Strings.uc'[',nam,']'
       A2←#.Strings.uc⍕⎕NSI
       R←∨/A1⍷A2
+    ∇
+
+
+    ∇ R←CatchAPIErrors R
+      :Access public
+⍝ simplistic mechanism to handle API-Errors and Warning:
+⍝ any return-code ≠0 will ⎕SIGNAL and get out of the stack,
+⍝ so the result returned in case of successfull operations
+⍝ will be the 3d element of the calls result.
+      :If 0=⊃R
+          R←3⊃R
+      :Else
+          ('API-Warning/Error-Msg: ',2⊃R)⎕SIGNAL 2
+      :EndIf
+     
     ∇
 
 :EndClass

@@ -12,7 +12,8 @@
     Extension is required!
     -->
     <API>app.dyalog</API>
-    <APIClassName>App</APIClassName>
+    <APIType>Namespace</APIType>  <!-- Namespace, Instance, Class (when using shared methods only)  -->
+    <APIClassName>App</APIClassName>   <!-- Name of class/namespace in API (relevant when API is in a DWS  -->
     
     <APIPath>#.App</APIPath>
     

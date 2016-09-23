@@ -8,6 +8,7 @@
     ∇ Compose;R;mn
       :Access public
       Use'jBox'
+      →PreFlightCheck↓0
       Add _.title #.Boot.ms.Config.Name
       Add _.Tabs('<i class="fa fa-table"></i> Data' '<i class="fa fa-magic"></i> Analysis' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
     ∇
@@ -17,8 +18,12 @@
       R←'.container'New _.div
       :Select i
       :Case 1
-          xx←(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
-          ∘∘∘Write code∘∘∘
+          xx←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary' 1)
+⍝xx← CatchAPIErrors (SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
+⍝yy← {CatchAPIErrors (SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))    }¨xx[;6]
+          R.Add _.Accordion(PFTitles¨↓xx)(PFContent¨↓xx)
+⍝          ∘∘∘Write code∘∘∘
+     
       :Case 2
      ⍝ ∘∘∘Write code∘∘∘
       :Case 3
@@ -47,4 +52,16 @@
     ∇
 
 
+    ∇ R←PFTitles pf
+ ⍝ return a nicely formatted vector with the titles of the individual portfolios of a client
+ ⍝@Adám: the .pf-Styles are horrible - the idea was to display the counter (of portfolio-elements as a sort od badge, not exactly entirely right-floated as here...)
+ ⍝ and of course smoother colours etc.  ;-)
+      R←'.pftitle'#.HtmlElement.New _.span(pf[1],' (',pf[5],')')
+      R,←'.pfitemcnt'#.HtmlElement.New _.span({⍕?100}pf)
+    ∇  
+
+
+    ∇ R←PFContent pfmat
+      R←New _.span'PF-Content!'
+    ∇
 :endclass

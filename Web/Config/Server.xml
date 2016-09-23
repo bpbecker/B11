@@ -1,5 +1,5 @@
 <Server>
-    <Name>B11: Best British Bond Broker Business By Busy Brian Becker &amp; Biene's Brave Baas</Name>
+    <Name>B11: Best British Bond Broker Business By Bold Brian Becker &amp; Brave Biene's Busy Baasi</Name>
     <AllowedHttpCommands>get,put,delete,post</AllowedHttpCommands>
     <Lang>en</Lang>
     <LogMessageLevel>1</LogMessageLevel> <!-- 0-none -1-all 1-error/important 2-warning 4-informational 8-Transactional -->

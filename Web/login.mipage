@@ -7,7 +7,8 @@
     :field public Spswd
     :field public Luserid
     :field public Suserid
-    :field public Salt                      
+    :field public Ssalt
+    :field public Ssalt∆
     :field UserSalt←''
     :field TempSalt←''
 
@@ -20,7 +21,7 @@
       R←'.container'Add _.div
       R Position'center' 'center' '.container'
      
-      MyTabs←R.Add _.Tabs
+      MyTabs←'#loginTabs'R.Add _.Tabs
       MyTabs.Sections←MakeTab¨⍳2
       MyTabs.Titles←((New _.Icon'fa-sign-in')' Login')((New _.Icon'fa-user-plus')' Sign Up')
       MyTabs.Theme←'0'
@@ -28,6 +29,9 @@
 
     ∇ R←MakeTab i;ig;form;salt;sbtn
       R←'.container'New _.div
+      msg←'#welcome'R.Add _.div'Welcome on your serious broker-site. If you''re a returning customer, please login using your credentials.'
+      msg.Add _.jBox'Tooltip' 'Sorry, this function is not yet implemented!' '(Forgot your password?)'
+      msg.Add 'As a new visitor on our site: welcome! Most functionality will require a Login, so why not signup right now? (Hint: it''s free!)'
      
       :Select i
       :Case 1
@@ -45,19 +49,22 @@
      
         ⍝ Submit-Button
           sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Login')
-          sbtn.On'click' 'Login'
-     
+          sbtn.On'click' 'Login'(('uid' 'val' '#Luserid')('hpwd' 'val' '#Hpswd')('tslt' 'val' '#Tsalt'))
           Add _.Script ScriptFollows
         ⍝ function HashPass(){
         ⍝   var hashObj = new jsSHA("SHA-256","TEXT");
-        ⍝   hashObj.update(($("#Lsalt").val()),$("#Lpswd").val());
+        ⍝   hashObj.update(($("#Lsalt").val())+$("#Lpswd").val());
         ⍝   temp = hashObj.getHash("HEX");
-        ⍝   hashObj.update(($("#Tsalt").val()),temp);
+        ⍝ console.log("Salting pswd " + $("#Lpswd").val() + " with salt " + $("#Lsalt").val());
+        ⍝ console.log("hashed result: " + temp );
+        ⍝   hashObj.update(($("#Tsalt").val())+temp);
         ⍝   $("#Hpswd").val(hashObj.getHash("HEX"));
+        ⍝ console.log("salting that with " + $("#Tsalt").val() + " gives result Hpswd=" + $("#Hpswd").val());
         ⍝ }
      
      
       :Case 2
+          Ssalt∆←#.utils.salt 32
           ig←'#signup'(form←R.Add _.Form).Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-user' 'fa-tag' 'fa-at' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Sname' 'Suserid' 'Smail' 'Spswd'
@@ -66,11 +73,19 @@
           ig.Inputs[2].SetAttr⊂'placeholder="UserID"'
           ig.Inputs[3].SetAttr⊂'placeholder="Email"'
           ig.Inputs[4].SetAttr'placeholder="Password"' 'type="Password"'
-          (form.Add _.input).(type name value)←'hidden' 'Salt' 'random salt goes here'
+          ig.Inputs[4].On'change' 0 '' 'SHashPass()'
+          (form.Add _.input).(type id name value)←'hidden' 'Ssalt' 'Ssalt'Ssalt∆
+          _Request.Session.sslt←Ssalt∆  ⍝ tmp - debugging MB
+          (form.Add _.input).(type name)←'hidden' 'Lpswd'
+          Add _.Script ScriptFollows
+        ⍝ function SHashPass(){
+        ⍝   var hashObj = new jsSHA("SHA-256","TEXT");
+        ⍝   hashObj.update(($("#Ssalt").val())+$("#Spswd").val());
+        ⍝   $("#Lpswd").val(hashObj.getHash("HEX"));
+        ⍝ }
      
-          sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Sign Up')
-          sbtn.On'click' 'Signup'
-     
+          sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Signup')
+          sbtn.On'click' 'Signup'(('name' 'val' '#Sname')('mail' 'val' '#Smail')('uid' 'val' '#Suserid')('hpwd' 'val' '#Lpswd'))
       :EndSelect
     ∇
 
@@ -83,13 +98,16 @@
 
     ∇ R←Login;ret;newUrl;newHash;origSalt;newSalt
       :Access public
-      ret←(SessionGet'APIref').CallAPI('Login2'(Luserid Hpswd TempSalt))
-      ⎕←ret ⋄ ∘∘∘
+      Luserid ←Get'uid'
+      Hpswd ←Get'hpwd'
+      tSalt←Get'tslt'
+      
+      ret←(SessionGet'APIref').CallAPI('Login2'(Luserid Hpswd tSalt))
       :If 0=⊃ret
           newUrl←(_Request.GetHeader'origin'),'/index'  ⍝ Host
           _Request.Session.(UID tUID)←3⊃ret
-          _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
           R←Execute('window.location="',newUrl,'";')
+          R,←Execute _.jBox.Modal New _.Panel('Welcome back, ',_Request.Session.tUID)'success'
       :Else
           R←Execute _.jBox.Modal New _.Panel(2⊃ret)'error'
       :EndIf
@@ -97,8 +115,10 @@
 
     ∇ R←Signup
       :Access public
+      Sname←Get'name'⋄Smail←Get'mail'⋄Suserid←Get'uid'⋄Hpswd←Get'hpwd'
+⎕←'_Request.Session.sslt≡Ssalt∆ > ',      _Request.Session.sslt≡Ssalt∆  ⍝ tmp, debugging MB
       ∘∘∘
-      R←(SessionGet'APIref').CallAPI'AddClient'(Sname Smail Suserid Spswd Salt)
+      R←(SessionGet'APIref').CallAPI'AddClient'(Sname Smail Suserid Hpswd Ssalt∆)
       :If 0=⍬⍴R  ⍝ success
           R←Execute'green'_.jBox.Notice'New user created!'
       :Else
