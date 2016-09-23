@@ -43,8 +43,8 @@
           (form.Add _.input).(type id name)←'hidden' 'Hpswd' 'Hpswd'
           (form.Add _.input).(type id name)←'hidden' 'Lsalt' 'Lsalt'
           (form.Add _.input).(type id name)←'hidden' 'Tsalt' 'Tsalt'
-          ig.Inputs[1].On'change' 'GetSalt'
-          ig.Inputs[2].On'change' 0 '' 'HashPass()'
+          ig.Inputs[1].On'blur' 'GetSalt'
+          ig.Inputs[2].On'blur' 0 '' 'HashPass()'
      
         ⍝ Submit-Button
           sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Login')
@@ -66,13 +66,12 @@
           ig←'#signup'(form←R.Add _.Form).Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-user' 'fa-tag' 'fa-at' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Sname' 'Suserid' 'Smail' 'Spswd'
-        ⍝  ig.Inputs.SetAttr⊂'style="width:30em;"'
           ig.Inputs[1].SetAttr⊂'placeholder="Name"'
           ig.Inputs[2].SetAttr⊂'placeholder="UserID"'
           ig.Inputs[3].SetAttr⊂'placeholder="Email"'
           ig.Inputs[4].SetAttr'placeholder="Password"' 'type="Password"'
-          ig.Inputs[4].On'change' 0 '' 'SHashPass()'
-     
+          ig.Inputs[4].On'blur' 0 '' 'SHashPass()'
+    
           'Ssalt'form.Add _.Input'hidden'Ssalt∆
           'Shpw'form.Add _.Input'hidden' ''  ⍝ hashed pswd used for signup
           (form.Add _.input).(type name)←'hidden' 'Lpswd'
@@ -108,7 +107,7 @@
           _Request.Session.(UID tUID)←3⊃ret
           _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
           R←Execute('window.location="',newUrl,'";')
-     :Else
+      :Else
           R←Execute _.jBox.Modal New _.Panel(2⊃ret)'error'
       :EndIf
     ∇
