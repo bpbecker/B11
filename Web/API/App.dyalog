@@ -290,7 +290,7 @@
       :ElseIf hashpass≢#.Strings.stringToHex #.utils.hash newsalt,⊃cdir[ind;5]
           (rc msg data)←6 'password mismatch' ''
       :Else
-          (rc msg data)←0 ''(⊃cdir[ind;1])
+          (rc msg data)←0 ''(cdir[ind;1 4])  ⍝ MB: return client ID & name!
       :EndIf
     ∇
 
