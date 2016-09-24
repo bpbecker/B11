@@ -34,40 +34,22 @@
           ⍝   0=No problems
           ⍝   1=Error executing API-CallAPI'arg
           ⍝   2=Error returned by API
+      arg←#.HtmlUtils.eis arg
       :If ~initialisedAPI
+          :If 0=#.⎕NC'API'  ⍝ if #.API does not exist, create it and fill with ws as required
+              ⎕SE.SALT.Load #.Boot.AppRoot,'API-Link/API',' -target=#'
+          :EndIf
           :If server≡'inSitu'
               APIConnection←sessionId,'.inSitu'
-              :If 0=#.⎕NC'API'  ⍝ if #.API does not exist, create it and fill with ws as required
-                  ⎕SE.SALT.Load #.Boot.ms.Config.Application.APIHomeDir,'API',' -target=#'
-              :EndIf
               'inSitu'#.API.InitAPI(#.Boot.ms.Config.Application.(APIHomeDir API APIClassName APIType),(APIToken sessionId Trapping))
      
      
           :Else
-              :If 0=#.⎕NC'API'  ⍝ if #.API does not exist, create it and fill with ws as required
-                  '#.API'⎕NS''
+              r←(server port)#.API.InitAPI(#.Boot.ms.Config.Application.(APIHomeDir API APIClassName APIType),(APIToken sessionId Trapping))
+              :If 0=⊃r
+                  APIConnection←2⊃r
               :EndIf
      
-              wsid←#.Boot.ms.Config.Application.APIHomeDir,'api_link'
-              runtime←#.Boot.ms.Config.Debug≠2  ⍝ when Debugging is enabled, use interpreter, RT otherwise
-              parms←'-slave=yes -Port=',⍕port
-              parms,←#.HtmlUtils.enlist(⊂' -API'),¨('' 'Path=' 'ClassName=' 'HomeDir=',¨#.Boot.ms.Config.Application.(API APIPath APIClassName APIHomeDir))
-              parms,←' -autoshut=0 -Trapping=',(⍕Trapping),' -sessionId=',sessionId
-              ('#.API.',sessionId)⎕NS''
-              :With #.API⍎sessionId
-                  APIProcess←⎕NEW #.APLProcess(wsid parms runtime)
-                  inSitu←0
-              :EndWith
-              ⎕DL 10  ⍝ allow some time for the start...
-              r←0
-     TryAgain:
-              :If 0=1⊃r←#.DRC.Clt''server port  ⍝ Connect
-                  APIConnection←2⊃r
-              :Else
-                  ⎕SE.Dyalog.Utils.display r
-                  ⎕←'→TryAgain   ⍝ if there is no client-connection...!'
-                  ..No client!...
-              :EndIf
           :EndIf
           ('#.API.',sessionId)⎕NS'APIToken'
           #.API.Trapping←Trapping
@@ -77,7 +59,7 @@
       :EndIf
      
       :Trap Trapping/0
-          :If arg≡'∇CloseAPI∇'      ⍝ [*Question*] Explicit command to close API - or use class-destructor instead?
+          :If arg≡,⊂'∇CloseAPI∇'      ⍝ [*Question*] Explicit command to close API - or use class-destructor instead?
               r←0
               :If '.inSitu'≡¯7↑APIConnection
                   #.API.⎕EX'sessionId'

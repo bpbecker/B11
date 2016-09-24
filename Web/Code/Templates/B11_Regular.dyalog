@@ -54,6 +54,7 @@ z←1
       Use'⍕/Styles/style.css'                  ⍝ add a link to our CSS stylesheet
       Use'⍕/Syncfusion/assets/css/web/',theme,'/ej.widgets.all.min.css'
       Use'⍕/Syncfusion/assets/css/web/',theme,'/ej.theme.min.css'
+      Add _.link 'href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet"'
      
     ⍝ set the title display in the browser to the name of the application defined in Config/Server.xml
       Add _.title title ⍝ we do that on the individual MiPages!
@@ -76,7 +77,7 @@ z←1
       '.show-lg'tit.Add _.span' Brave Biene''s Busy '
       '.show-md'tit.Add _.span'Baas'
       '.show-lg'tit.Add _.span'i'
-      hd,←'#logo'New _.div(('B11'New _.span'B11')('#slogan'New _.p 'more Bang for the Buck'))
+      hd,←'#logo'New _.div(('B11'New _.span '<b>B11</b>')('#slogan'New _.p 'More Bang for the Buck'))
       :While 0<⍴_Request.Session.showMsg
           :If 0>⊃1⊃_Request.Session.showMsg   ⍝ there is an errormsg (or a warning) to show!
               OnLoad,←_.jBox.Modal(New _.Panel((,2⊃t)(t[1]⊃'warn' 'error')))
@@ -125,6 +126,7 @@ z←1
     ∇ R←IfInstance nam
       A1←#.Strings.uc'[',nam,']'
       A2←#.Strings.uc⍕⎕NSI
+⍝      ∘∘∘
       R←∨/A1⍷A2
     ∇
 

@@ -10,7 +10,7 @@
       Use'jBox'
       →PreFlightCheck↓0
       Add _.title #.Boot.ms.Config.Name
-      Add _.Tabs('<i class="fa fa-table"></i> Data' '<i class="fa fa-magic"></i> Analysis' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
+      Add _.ejTab('<i class="fa fa-table"></i> Data' '<i class="fa fa-magic"></i> Analysis' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
     ∇
 
 
@@ -18,10 +18,15 @@
       R←'.container'New _.div
       :Select i
       :Case 1
-          xx←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary' 1)
-⍝xx← CatchAPIErrors (SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
-⍝yy← {CatchAPIErrors (SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))    }¨xx[;6]
-          R.Add _.Accordion(PFTitles¨↓xx)(PFContent¨↓xx)
+xx← CatchAPIErrors (SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))  
+cc← CatchAPIErrors (SessionGet'APIref').CallAPI'GetCommodities'
+⍝∘∘∘
+:if 0∊⍴xx
+'.primBtn'R.Add _.Button(⊂(_.Icon'fa-plus-square')'Add Portfolio')
+:else 
+⍝ yy← {CatchAPIErrors (SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))    }¨xx[;6]
+          ⍝R.Add _.ejAccordion(PFTitles¨↓xx)(PFContent¨↓xx,yy)
+:endif
 ⍝          ∘∘∘Write code∘∘∘
      
       :Case 2

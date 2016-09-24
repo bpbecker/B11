@@ -41,7 +41,8 @@
 
 #title,#slogan {
     font-size: 200%;
-    font-family: Organica, sans-serif;
+    /* font-family: Organica, sans-serif; */
+    	 font-family: "Open Sans Condensed";
     color: white;
     text-shadow: grey 1px 1px 0,grey 2px 2px 0, black 3px 3px 5px;
     text-align: center;
@@ -49,7 +50,8 @@
 
 #logo {
     text-align: center;
-    font-family: Organica, sans-serif;
+    /* font-family: Organica, sans-serif; */
+    	 font-family: "Open Sans Condensed";
     color: white;
     display: block;
     content: "B11";
@@ -82,10 +84,11 @@ body {
     height: 100vh;
 }
 
-@font-face {
+/* @font-face {
     font-family: Organica;
     src: url("Kingthings Organica.ttf");
 }
+*/
 .pfitemcnt {/* Portfolio Item-Counter (in PF-Tabs) */
  	float: right;
  	border: thin solid grey; border-radius: 5px;
