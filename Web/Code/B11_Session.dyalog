@@ -41,11 +41,11 @@
           :EndIf
           :If server≡'inSitu'
               APIConnection←sessionId,'.inSitu'
-              'inSitu'#.API.InitAPI(#.Boot.ms.Config.Application.(APIHomeDir API APIClassName APIType),(APIToken sessionId Trapping))
+              'inSitu'#.API.InitAPI(#.Boot.ms.Config.Application.(APIHomeDir API APIClassName APIType APIRequires),(APIToken sessionId Trapping))
      
      
           :Else
-              r←(server port)#.API.InitAPI(#.Boot.ms.Config.Application.(APIHomeDir API APIClassName APIType),(APIToken sessionId Trapping))
+              r←(server port)#.API.InitAPI(#.Boot.ms.Config.Application.(APIHomeDir API APIClassName APIType APIRequires),(APIToken sessionId Trapping))
               :If 0=⊃r
                   APIConnection←2⊃r
               :EndIf

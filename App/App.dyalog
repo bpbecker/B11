@@ -1,11 +1,6 @@
 ﻿:Class App
     (⎕IO ⎕ML ⎕WX)←1 1 3
 
-⍝∇:require =/utils.dyalog
-⍝∇:require =/Crypt.dyalog
-⍝∇:require =/Strings.dyalog
-
-
 ⍝ Note: Holding is being done both with ⎕FHOLD and :Hold
 ⍝       so that things are properly synchronized no matter if
 ⍝       the application run in multiple threads in the workspace (:Hold)

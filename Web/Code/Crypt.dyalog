@@ -271,7 +271,7 @@
           D←_Decrypt P D
       :Case 6
           :Trap 0
-              Init ''
+              Init''
               D←_Decrypt P D
           :Else
               ⎕SIGNAL ⎕EN
@@ -286,7 +286,7 @@
           D←_Encrypt P D
       :Case 6
           :Trap 0
-              Init ''
+              Init''
               D←_Encrypt P D
           :Else
               ⎕SIGNAL ⎕EN
@@ -301,7 +301,7 @@
           D←_Hash P D
       :Case 6
           :Trap 0
-              Init ''
+              Init''
               D←_Hash P D
           :Else
               ⎕SIGNAL ⎕EN
@@ -316,7 +316,7 @@
           D←_PKey P D
       :Case 6
           :Trap 0
-              Init ''
+              Init''
               D←_PKey P D
           :Else
               ⎕SIGNAL ⎕EN
@@ -331,7 +331,7 @@
           D←_Random⊂D
       :Case 6
           :Trap 0
-              Init ''
+              Init''
               D←_Random⊂D
           :Else
               ⎕SIGNAL ⎕EN
@@ -362,7 +362,7 @@
       r←r((⎕IO+∨/'-64'⍷apl)⊃'32' '64')
     ∇
 
-    ∇ {RCode}←Init path;platform;dirsep;ExtractPath;wspath;curpath;exepath;AddSep;dll;dir;path;FileExists;found;Library
+    ∇ {RCode}←Init path;platform;dirsep;ExtractPath;wspath;curpath;exepath;AddSep;dll;dir;path;FileExists;found;Library;scriptpath
       :Trap 0
           platform←Platform
           dirsep←'/\'[⎕IO+'win'≡⎕IO⊃platform]
@@ -383,11 +383,12 @@
               exepath←AddSep 2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'
               dll←'dyacrypt20_',((⎕IO+1)⊃platform),'.so'
           :EndIf
+          scriptpath←{6::'' ⋄ ((⌽∨\⌽⍵∊'\/')/⍵),'CryptDLLs',dirsep}#.Crypt.SALT_Data.SourceFile  ⍝ should work on both platforms
      
           :Hold '#.Crypt.Init'
               :If 0=⎕NC'_Hash'
                   :If 0∊⍴path
-                      :For path :In wspath curpath exepath
+                      :For path :In wspath curpath exepath scriptpath
                           :If found←FileExists Library←path,dll ⋄ :Leave ⋄ :EndIf
                           :If found←FileExists Library←path,dir,dll ⋄ :Leave ⋄ :EndIf
                       :EndFor
