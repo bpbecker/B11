@@ -59,7 +59,7 @@
       :EndIf
      
       :Trap Trapping/0
-          :If arg≡,⊂'∇CloseAPI∇'      ⍝ [*Question*] Explicit command to close API - or use class-destructor instead?
+          :If (eis arg)≡,⊂'∇CloseAPI∇'      ⍝ [*Question*] Explicit command to close API - or use class-destructor instead?
               r←0
               :If '.inSitu'≡¯7↑APIConnection
                   #.API.⎕EX'sessionId'
