@@ -20,7 +20,7 @@
      
       (R←'.container'Add _.div)Position'center' 'center' '.container'
      
-      MyTabs←'#loginTabs'R.Add _.Tabs
+      MyTabs←'#loginTabs'R.Add _.ejTab
       MyTabs.Sections←MakeTab¨⍳2
       MyTabs.Titles←((New _.Icon'fa-sign-in')' Login')((New _.Icon'fa-user-plus')' Sign Up')
       MyTabs.Theme←'0'
