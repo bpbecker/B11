@@ -5,8 +5,8 @@
 
     <!-- following paths refer to file-system of the TARGET-Machine 
     on which your processes will run (as set in API_Hosts -->
-    <APIHomeDir>./../APP</APIHomeDir>
-    <APIDataDir>./../APP/Data</APIDataDir>
+    <APIHomeDir>./../App</APIHomeDir>
+    <APIDataDir>./../App/Data</APIDataDir>
     
     <!-- API might be the name of a workspace OR a .dyalog-file (in APIHomeDir)
     Extension is required!
