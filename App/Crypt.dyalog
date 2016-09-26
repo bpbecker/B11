@@ -372,6 +372,8 @@
      
           dir←(('aix' 'lin' 'arm' 'win'⍳⊂⎕IO⊃platform)⊃'aix' 'linux' 'pi' 'windows'),dirsep
      
+          scriptpath←{0::'' ⋄ ExtractPath ⎕THIS⍎'SALT_DATA.SourceFile'}''
+     
           :If 'win'≡⎕IO⊃platform
               wspath←AddSep{⍵{⍵{⎕EX ⍺:⍵}(ExtractPath↑↑/2↑_GetFullPathName ⎕WSID 1024 1024 0),'\',⍺}'_GetFullPathName'⎕NA'I KERNEL32|GetFullPathName* <0T I >T[] >I'}''
               curpath←AddSep↑⎕SH'cd'
@@ -383,12 +385,11 @@
               exepath←AddSep 2 ⎕NQ'.' 'GetEnvironment' 'DYALOG'
               dll←'dyacrypt20_',((⎕IO+1)⊃platform),'.so'
           :EndIf
-          scriptpath←{6::'' ⋄ ((⌽∨\⌽⍵∊'\/')/⍵),'CryptDLLs',dirsep}#.Crypt.SALT_Data.SourceFile  ⍝ should work on both platforms
      
           :Hold '#.Crypt.Init'
               :If 0=⎕NC'_Hash'
                   :If 0∊⍴path
-                      :For path :In wspath curpath exepath scriptpath
+                      :For path :In scriptpath wspath curpath exepath
                           :If found←FileExists Library←path,dll ⋄ :Leave ⋄ :EndIf
                           :If found←FileExists Library←path,dir,dll ⋄ :Leave ⋄ :EndIf
                       :EndFor
