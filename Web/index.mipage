@@ -20,12 +20,13 @@
       :Case 1
 xx← CatchAPIErrors (SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))  
 cc← CatchAPIErrors (SessionGet'APIref').CallAPI'GetCommodities'
-⍝∘∘∘
+
 :if 0∊⍴xx
 '.primBtn'R.Add _.Button(⊂(_.Icon'fa-plus-square')'Add Portfolio')
 :else 
 ⍝ yy← {CatchAPIErrors (SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))    }¨xx[;6]
-          ⍝R.Add _.ejAccordion(PFTitles¨↓xx)(PFContent¨↓xx,yy)
+⍝ on hold while waiting for App.PortfolioSummary
+          R.Add _.ejAccordion(PFTitles¨↓xx)(PFContent¨↓xx)  ⍝ xx,yy  ⍝ - also rename variables when workflow stabilzes...
 :endif
 ⍝          ∘∘∘Write code∘∘∘
      
@@ -62,7 +63,7 @@ cc← CatchAPIErrors (SessionGet'APIref').CallAPI'GetCommodities'
  ⍝@Adám: the .pf-Styles are horrible - the idea was to display the counter (of portfolio-elements as a sort od badge, not exactly entirely right-floated as here...)
  ⍝ and of course smoother colours etc.  ;-)
       R←'.pftitle'#.HtmlElement.New _.span(pf[1],' (',pf[5],')')
-      R,←'.pfitemcnt'#.HtmlElement.New _.span({⍕?100}pf)
+      R,←'.pfitemcnt'#.HtmlElement.New _.span(⍕pf[2]),'/',⍕pf[3]  ⍝ Commodities/Scenarios
     ∇  
 
 
