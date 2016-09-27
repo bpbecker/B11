@@ -513,6 +513,11 @@
       data←getCommodityDir
     ∇
 
+    ∇ r←GetScenariosForPortfolio pid
+      :Access public shared
+      r←pid{⍵⌿⍨⍵[;2]∊⍺}getScenarioDir
+    ∇
+
     :endsection
 
     :section Misc
