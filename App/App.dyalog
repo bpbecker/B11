@@ -6,13 +6,15 @@
 ⍝       the application run in multiple threads in the workspace (:Hold)
 ⍝       or across multiple APL processes (⎕FHOLD)
 
+    DataDir←0
 
     ∇ (rc msg data)←Init dir
       :Access public shared
       ⍝ dir is the folder containing the "database", '' → defaults to same folder as workspace
       :If 0∊⍴dir ⋄ dir←'/\'#.utils.cutLast ⎕WSID ⋄ :EndIf
       ⎕FUNTIE ⎕FNUMS
-      clientTn portfolioTn commodityTn scenarioTn←dir∘{(⍺,⍵)⎕FSTIE 0}¨'clients' 'portfolios' 'commodities' 'scenarios'
+      :If 0≡DataDir ⋄ DataDir←dir ⋄ :EndIf
+      clientTn portfolioTn commodityTn scenarioTn←DataDir∘{(⍺,⍵)⎕FSTIE 0}¨'clients' 'portfolios' 'commodities' 'scenarios'
       rc←0
       data←''
       msg←'Initialized from folder ',dir
@@ -220,15 +222,41 @@
     ∇
 
     ∇ (rc msg data)←PortfolioSummary(cid pid);pdir;mask;ind;port
+    ⍝ data = [;1] commodity id [;2] commodity name [;3] purchase date [;4] shares [;5] price [;6] value
       :Access public shared
+      (rc msg data)←0 ''(0 6⍴'' '' '' 0 0 0)
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
           pdir←getPortfolioDir
           :If ∨/mask←pdir[;2]=cid
               :If ∨/mask←mask∧pdir[;1]=pid
                   ind←mask/⍳⍴mask
-                  port←getPortfolio pdir[ind;3]
-     
+                  :If ~0∊⍴port←getPortfolio pdir[ind;3]
+                      data←port[;1],(CommodityName port[;1]),(#.utils.fmtDate¨port[;4]),{⍵[;1],#.utils.fmtCurrency¨⍵[;2 3]}{⍵,×/⍵}port[;2 3]
+                  :EndIf
+              :Else
+                  (rc msg data)←4 'portfolio not found'pid
+              :EndIf
+          :Else
+              (rc msg data)←3 'client not found'cid
+          :EndIf
+     Done:⎕FHOLD ⍬
+      :EndHold
+    ∇
+
+    ∇ (rc msg data)←ScenarioSummary sid
+    ⍝ data = [;1] commodity id [;2] commodity name [;3] purchase date [;4] shares [;5] price [;6] value
+      :Access public shared
+      (rc msg data)←0 ''(0 6⍴'' '' '' 0 0 0)
+      :Hold 'portfolio' 'scenario'
+          ⎕FHOLD portfolioTn,scenarioTn
+          pdir←getPortfolioDir
+          :If ∨/mask←pdir[;2]=cid
+              :If ∨/mask←mask∧pdir[;1]=pid
+                  ind←mask/⍳⍴mask
+                  :If ~0∊⍴port←getPortfolio pdir[ind;3]
+                      data←port[;1],(CommodityName port[;1]),(#.utils.fmtDate¨port[;4]),{⍵[;1],#.utils.fmtCurrency¨⍵[;2 3]}{⍵,×/⍵}port[;2 3]
+                  :EndIf
               :Else
                   (rc msg data)←4 'portfolio not found'pid
               :EndIf
@@ -248,12 +276,12 @@
           scen←GetScenario sid
           port←GetPortfolio(1⊃3⊃scen)[2]
           today←⌊#.utils.DateToIDN ⎕TS
-          max←⌈/dates←#.utils.DateToIDN¨(2⊃3⊃scen)[;1]
+          max←⌈/dates←⌊#.utils.DateToIDN¨(2⊃3⊃scen)[;1]
           days←max-today
-          data←↑(1↓{⍵,(¯1↑⍵)+.01×⌊.5+100×¯.5+?0}⍣days)¨(portfolio←2⊃3⊃port)[;3]
+          data←↑(1↓{⍵,(¯1↑⍵)+0.01×⌊0.5+100×¯0.5+?0}⍣days)¨(portfolio←2⊃3⊃port)[;3]
           data,⍨←portfolio[;1 3]
-          data⍪⍨←(⊂'Commodity'), {3↑#.utils.IDNToDate ⍵}¨today,today+⍳days
-          data putScenarioResults (1⊃3⊃scen)[3]
+          data⍪⍨←(⊂'Commodity'),{3↑#.utils.IDNToDate ⍵}¨today,today+⍳days
+          data putScenarioResults(1⊃3⊃scen)[3]
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
@@ -309,8 +337,8 @@
           :If 0∊⍴email ⋄ (rc msg)←2 'empty email' ⋄ →Done ⋄ :EndIf
           :If 0∊⍴name ⋄ (rc msg)←3 'empty name' ⋄ →Done ⋄ :EndIf
           :If ~0∊⍴dir
-          :If (⊂userid)∊dir[;4] ⋄ (rc msg)←1 'userid in use' ⋄ →Done ⋄ :EndIf
-          :If (⊂email)(∊#.utils.cis)dir[;3] ⋄ (rc msg)←2 'email in use' ⋄ →Done ⋄ :EndIf
+              :If (⊂userid)∊dir[;4] ⋄ (rc msg)←1 'userid in use' ⋄ →Done ⋄ :EndIf
+              :If (⊂email)(∊#.utils.cis)dir[;3] ⋄ (rc msg)←2 'email in use' ⋄ →Done ⋄ :EndIf
           :EndIf
           cid←nextClientId
           putClientDir dir⍪cid name email userid pwd salt''⍬
@@ -458,6 +486,11 @@
       :EndTrap
     ∇
 
+    ∇ r←CommodityName cmid
+      :Access public shared
+      r←getCommodityDir{(⍺[;2],⊂'??? Not found')[⍺[;1]⍳⍵]}eis cmid
+    ∇
+
 
     :endsection
 
@@ -482,18 +515,21 @@
           ⎕FHOLD clientTn,portfolioTn,scenarioTn
           :If ~∧/mask←getPortfolioDir[;2]∊getClientDir[;1] ⍝ orphaned portfolios
               putPortfolioDir mask⌿getPortfolioDir
-              comps←(5↓⍳¯1+2⊃⎕FSIZE portfolioTn)~getPortfolioDir[;3]
-              ''∘putPortfolio¨comps
+              :If ~0∊⍴comps←(5↓⍳¯1+2⊃⎕FSIZE portfolioTn)~getPortfolioDir[;3]
+                  ''∘putPortfolio¨comps
+              :EndIf
           :EndIf
           :If ~∧/mask←getScenarioDir[;2]∊getPortfolioDir[;1] ⍝ orphaned scenarios
-              putPortfolioDir mask⌿getPorfolioDir
-              comps←(5↓⍳¯1+2⊃⎕FSIZE scenarioTn)~getScenarioDir[;3]∘.+0 1
-              ''∘putScenarioParameters¨comps
+              putScenarioDir mask⌿getScenarioDir
+              :If ~0∊⍴comps←(5↓⍳¯1+2⊃⎕FSIZE scenarioTn)~getScenarioDir[;3]∘.+0 1
+                  ''∘putScenarioParameters¨comps
+              :EndIf
           :EndIf
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
 
+    eis←{(,∘⊂)⍣((326∊⎕DR ⍵)<2>|≡⍵)⊢⍵} ⍝ Enclose if simple
     :endsection
 
     :section Unit_Tests

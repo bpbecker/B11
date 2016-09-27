@@ -1,16 +1,4 @@
 ﻿:class login :B11_Regular
-    :field public Sname
-    :field public Lmail
-    :field public Smail
-    :field public Hpswd
-    :field public Lpswd
-    :field public Spswd
-    :field public Luserid
-    :field public Suserid
-    :field public Ssalt
-    :field public Ssalt∆
-    :field UserSalt←''
-    :field TempSalt←''
 
     ∇ Compose;R;MyTabs
       :Access public
@@ -22,16 +10,16 @@
      
       MyTabs←'#loginTabs'R.Add _.ejTab
       MyTabs.Sections←MakeTab¨⍳2
-      MyTabs.Titles←((New _.Icon'fa-sign-in')' Login')((New _.Icon'fa-user-plus')' Sign Up')
+      MyTabs.Titles←((_.Icon'fa-sign-in')' Login')((_.Icon'fa-user-plus')' Sign Up')
       MyTabs.Theme←'0'
     ∇
 
 
-    ∇ R←MakeTab i;ig;form;salt;sbtn;msg
+    ∇ R←MakeTab i;msg;form;ig;sbtn
       R←'.container'New _.div
-      msg←'#welcome'R.Add _.div(_.b 'Welcome!')_.br'If you''re a returning customer, please login using your credentials. '
+      msg←'#welcome'R.Add _.div(_.b'Welcome!')_.br'If you''re a returning customer, please login using your credentials. '
       msg.Add(_.jBox'Tooltip' 'Sorry, this function is not yet implemented!' '(Forgot your password?)')_.br
-      msg.Add'If you''re a new visitor, most functionality will require you to login, so why not signup right now? (Hint:it''s free!)' _.br _.br
+      msg.Add'If you''re a new visitor, most functionality will require you to login, so why not signup right now? (Hint:it''s free!)'_.br _.br
      
       :Select i
       :Case 1
@@ -40,9 +28,9 @@
           ig.Labels←{New _.Icon ⍵}¨'fa-tag' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Luserid' 'Lpswd'
           ig.Inputs[1 2].SetAttr'placeholder="User ID"'('placeholder="Password"' 'type="Password"')
-          (form.Add _.input).(type id name)←'hidden' 'Hpswd' 'Hpswd'
-          (form.Add _.input).(type id name)←'hidden' 'Lsalt' 'Lsalt'
-          (form.Add _.input).(type id name)←'hidden' 'Tsalt' 'Tsalt'
+          'Hpswd'form.Add _.Input'hidden' 'Hpswd'
+          'Lsalt'form.Add _.Input'hidden' 'Lsalt'
+          'Tsalt'form.Add _.Input'hidden' 'Tsalt'
           ig.Inputs[1].On'blur' 'GetSalt'
           ig.Inputs[2].On'blur' 0 '' 'HashPass()'
      
@@ -62,8 +50,8 @@
      
      
       :Case 2
-          Ssalt∆←#.utils.salt 32
-          ig←'#signup'(form←R.Add _.Form).Add _.InputGrid
+          Ssalt←#.utils.salt 32
+          ig←(form←'#signup'R.Add _.Form).Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-user' 'fa-tag' 'fa-at' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Sname' 'Suserid' 'Smail' 'Spswd'
           ig.Inputs[1].SetAttr⊂'placeholder="Name"'
@@ -71,8 +59,8 @@
           ig.Inputs[3].SetAttr⊂'placeholder="Email"'
           ig.Inputs[4].SetAttr'placeholder="Password"' 'type="Password"'
           ig.Inputs[4].On'blur' 0 '' 'SHashPass()'
-    
-          'Ssalt'form.Add _.Input'hidden'Ssalt∆
+     
+          'Ssalt'form.Add _.Input'hidden'Ssalt
           'Shpw'form.Add _.Input'hidden' ''  ⍝ hashed pswd used for signup
           (form.Add _.input).(type name)←'hidden' 'Lpswd'
      
@@ -92,16 +80,16 @@
     ∇ R←GetSalt;ret
       :Access public
       ret←(SessionGet'APIref').CallAPI('Login1'_value)
-      R←Execute'#Lsalt'#._JSS.Val(UserSalt←3 1⊃ret )
+      R←Execute'#Lsalt'#._JSS.Val(UserSalt←3 1⊃ret)
       R,←Execute'#Tsalt'#._JSS.Val(TempSalt←2⊃3⊃ret)
     ∇
 
-    ∇ R←Login;ret;newUrl;newHash;origSalt;newSalt;Luserid;Hpswd;tSalt
+    ∇ R←Login;Luserid;Hpswd;Tsalt;ret;newUrl
       :Access public
       Luserid←Get'uid'
       Hpswd←Get'hpwd'
-      tSalt←Get'tslt'
-      ret←(SessionGet'APIref').CallAPI('Login2'(Luserid Hpswd tSalt))
+      Tsalt←Get'tslt'
+      ret←(SessionGet'APIref').CallAPI('Login2'(Luserid Hpswd Tsalt))
       :If 0=⊃ret
           newUrl←(_Request.GetHeader'origin'),'/index'  ⍝ Host
           _Request.Session.(UID tUID)←3⊃ret
@@ -112,15 +100,20 @@
       :EndIf
     ∇
 
-    ∇ R←Signup
+    ∇ R←Signup;ret;Sname;Smail;Suserid;Hpswd
       :Access public
-      Sname←Get'name' ⋄ Smail←Get'mail' ⋄ Suserid←Get'uid' ⋄ Hpswd←Get'hpwd'
-      R←(SessionGet'APIref').CallAPI'AddClient'(Sname Smail Suserid Hpswd Ssalt∆)
-      :If 0=⍬⍴R  ⍝ success
+      Sname←Get'name'
+      Smail←Get'mail'
+      Suserid←Get'uid'
+      Hpswd←Get'hpwd'
+      ret←(SessionGet'APIref').CallAPI'AddClient'(Sname Smail Suserid Hpswd Ssalt)
+      :If 0=⍬⍴ret  ⍝ success
           R←Execute'green'_.jBox.Notice'New user created!'
+          R,←Execute'#signup'#._JSS.Trigger'reset'
       :Else
-          R←Execute _.jBox.Modal New _.Panel(2⊃R)'error'
+          R←Execute _.jBox.Modal New _.Panel(2⊃ret)'error'
       :EndIf
+      R,←Execute'#Ssalt'Val Ssalt←#.utils.salt 32 ⍝ reset signup salt
     ∇
 
 :endclass
