@@ -4,7 +4,10 @@
     cis←{⍺←⊢⋄(lc ⍺)⍺⍺(lc ⍵)}  ⍝ case insensitive
     iotaz←{⍺{⍵×⍵≤⍴⍺}⍺⍳⍵}      ⍝ ⍳ but return 0 for item not found
     cutLast←{⍵↓⍨-⊥⍨~⍵∊⍺}      ⍝ cut last partition based on ⍺
-    fmtTs←{(2 0⍕⍵[3]),'-','JanFebMarAprMayJunJulAugSepOctNovDec'[(3×⍵[2])-2 1 0],'-',(4 0⍕⍵[1]),' ',¯1↓,'3(ZI2,<:>)'⎕FMT 1 3⍴⍵[4 5 6]}
+    fmtDate←{(2 0⍕⍵[3]),'-','JanFebMarAprMayJunJulAugSepOctNovDec'[(3×⍵[2])-2 1 0],'-',(4 0⍕⍵[1])}
+    fmtTime←{¯1↓,'3(ZI2,<:>)'⎕FMT 1 3⍴⍵}
+    fmtTs←{(fmtDate 3↑⍵),' ',fmtTime 3↑3↓⍵}
+    fmtCurrency←{,'P<$>CF12.2' ⎕FMT ⍵}
     hash←{#.Crypt.(HASH_SHA256 Hash ⍵)}
     salt←{#.Strings.stringToHex #.Crypt.Random ⍵}
     DateToIDN←{(2 ⎕NQ'.' 'DateToIDN'(3↑⍵))+(24 60 60 1000⊥4↑3↓⍵)÷86400000}

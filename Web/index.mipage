@@ -18,17 +18,15 @@
       R←'.container'New _.div
       :Select i
       :Case 1
-xx← CatchAPIErrors (SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))  
+cs← CatchAPIErrors (SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))  
 cc← CatchAPIErrors (SessionGet'APIref').CallAPI'GetCommodities'
 
-:if 0∊⍴xx
-'.primBtn'R.Add _.Button(⊂(_.Icon'fa-plus-square')'Add Portfolio')
+:if 0∊⍴cs
+    '.primBtn'R.Add _.Button(⊂(_.Icon'fa-plus-square')'Add Portfolio')
 :else 
-⍝ yy← {CatchAPIErrors (SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))    }¨xx[;6]
-⍝ on hold while waiting for App.PortfolioSummary
-          R.Add _.ejAccordion(PFTitles¨↓xx)(PFContent¨↓xx)  ⍝ xx,yy  ⍝ - also rename variables when workflow stabilzes...
+    pfs← {CatchAPIErrors (SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))    }¨cs[;6]
+  R.Add _.ejAccordion(PFTitles¨↓cs)(PFContent¨pfs) 
 :endif
-⍝          ∘∘∘Write code∘∘∘
      
       :Case 2
      ⍝ ∘∘∘Write code∘∘∘
@@ -67,7 +65,8 @@ cc← CatchAPIErrors (SessionGet'APIref').CallAPI'GetCommodities'
     ∇  
 
 
-    ∇ R←PFContent pfmat
-      R←New _.span'PF-Content!'
+    ∇ R←PFContent pfmat;hdr
+      hdr←'ID' 'Name' 'Purchase Date' 'Shares' 'Price' 'Value'
+      R←New _.DataTable(hdr⍪pfmat)''1
     ∇
 :endclass

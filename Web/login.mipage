@@ -17,12 +17,13 @@
 
     ∇ R←MakeTab i;msg;form;ig;sbtn
       R←'.container'New _.div
-      msg←'#welcome'R.Add _.div(_.b'Welcome!')_.br'If you''re a returning customer, please login using your credentials. '
-      msg.Add(_.jBox'Tooltip' 'Sorry, this function is not yet implemented!' '(Forgot your password?)')_.br
-      msg.Add'If you''re a new visitor, most functionality will require you to login, so why not signup right now? (Hint:it''s free!)'_.br _.br
+      msg←('#welcome',⍕R)R.Add _.div(_.b 'Welcome!')_.br
      
       :Select i
       :Case 1
+		      msg.Add'If you''re a returning customer, please login using your credentials. '
+		      msg.Add(_.jBox'Tooltip' 'Sorry, this function is not yet implemented!' '(Forgot your password?)')_.br
+		      msg.Add'If you''re a new visitor, most functionality will require you to login, so why not signup right now? (Hint:it''s free!)' _.br _.br
           form←R.Add _.Form
           ig←'#login'form.Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-tag' 'fa-lock'
@@ -50,6 +51,9 @@
      
      
       :Case 2
+      		msg.Add 'Thank you for your interest in B11. Please be assured that our professional brokerage-platform will meet all your trading-needs'
+      		msg.Add ' and exceed your wildest expectations. Our team of dedicated and professional developers is continously working in several timezones'
+      		msg.Add ' to enhance the features and the user-experience of this platform. We do look forward to getting to know you and to help your business grow.'
           Ssalt←#.utils.salt 32
           ig←(form←'#signup'R.Add _.Form).Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-user' 'fa-tag' 'fa-at' 'fa-lock'
