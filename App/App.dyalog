@@ -6,6 +6,9 @@
 ⍝       the application run in multiple threads in the workspace (:Hold)
 ⍝       or across multiple APL processes (⎕FHOLD)
 
+
+    :section Initialization and Documentation
+
     DataDir←0
 
     ∇ (rc msg data)←Init dir
@@ -27,10 +30,28 @@
       r←(↓⎕FNAMES)⍪⍉⍪⎕FREAD¨⎕FNUMS,¨1
     ∇
 
-    ∇ (rc msg data)←GetCommodities
+    :endsection
+
+    :section Add Data
+
+    ∇ (rc msg cid)←AddClient(name email userid pwd salt);dir
       :Access public shared
-      (rc msg)←0 ''
-      data←getCommodityDir
+     ⍝ rc= 1 userid in use, 2 email in use
+      (rc msg cid)←0 '' 0
+      :Hold 'client'
+          ⎕FHOLD clientTn
+          dir←getClientDir
+          :If 0∊⍴userid ⋄ (rc msg)←1 'empty userid' ⋄ →Done ⋄ :EndIf
+          :If 0∊⍴email ⋄ (rc msg)←2 'empty email' ⋄ →Done ⋄ :EndIf
+          :If 0∊⍴name ⋄ (rc msg)←3 'empty name' ⋄ →Done ⋄ :EndIf
+          :If ~0∊⍴dir
+              :If (⊂userid)∊dir[;4] ⋄ (rc msg)←1 'userid in use' ⋄ →Done ⋄ :EndIf
+              :If (⊂email)(∊#.utils.cis)dir[;3] ⋄ (rc msg)←2 'email in use' ⋄ →Done ⋄ :EndIf
+          :EndIf
+          cid←nextClientId
+          putClientDir dir⍪cid name email userid pwd salt''⍬
+     Done:⎕FHOLD ⍬
+      :EndHold
     ∇
 
     ∇ (rc msg pid)←AddPortfolio(cid pname port);dir;ptr
@@ -64,6 +85,10 @@
       :EndHold
     ∇
 
+    :endsection
+
+    :section Delete Data
+
     ∇ (rc msg data)←DeleteClient cid;pdir;mask;portfolios;p;sdir;s;cdir;cmask
       :Access public shared
       (rc msg data)←0 ''cid
@@ -80,20 +105,6 @@
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
-
-    ∇ {r}←DeleteClientPortfolios cid;pdir;mask;portfolios;p;putPortfolioDir
-    ⍝ note - file holds are done in calling environment
-      pdir←getPortfolioDir
-      :If ∨/mask←cid=pdir[;2]
-          portfolios←mask⌿pdir
-          :For p :In portfolios[;3]
-              ⍬ putPortfolio p
-          :EndFor
-          putPortfolioDir pdir⌿⍨~mask
-      :EndIf
-      r←mask/pdir[;1] ⍝ return deleted portfolio ids
-    ∇
-
 
     ∇ (rc msg data)←DeletePortfolio pid;dir;mask
       :Access public shared
@@ -112,16 +123,17 @@
       :EndHold
     ∇
 
-    ∇ DeletePorfolioScenarios pids;sdir;mask;s
-    ⍝ ⎕FHOLD is done in calling environment
-      sdir←getScenarioDir
-      :If ∨/mask←sdir[;2]∊pids
-          :For s :In mask/sdir[;3]
-              ⍬ putScenarioParameters s
-              ⍬ putScenarioResults s
+    ∇ {r}←DeleteClientPortfolios cid;pdir;mask;portfolios;p;putPortfolioDir
+    ⍝ note - file holds are done in calling environment
+      pdir←getPortfolioDir
+      :If ∨/mask←cid=pdir[;2]
+          portfolios←mask⌿pdir
+          :For p :In portfolios[;3]
+              ⍬ putPortfolio p
           :EndFor
-          putScenarioDir(~mask)⌿sdir
+          putPortfolioDir pdir⌿⍨~mask
       :EndIf
+      r←mask/pdir[;1] ⍝ return deleted portfolio ids
     ∇
 
     ∇ (rc msg data)←DeleteScenario sid;sdir;mask;ptr
@@ -142,6 +154,22 @@
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
+
+    ∇ DeletePortfolioScenarios pids;sdir;mask;s
+    ⍝ ⎕FHOLD is done in calling environment
+      sdir←getScenarioDir
+      :If ∨/mask←sdir[;2]∊pids
+          :For s :In mask/sdir[;3]
+              ⍬ putScenarioParameters s
+              ⍬ putScenarioResults s
+          :EndFor
+          putScenarioDir(~mask)⌿sdir
+      :EndIf
+    ∇
+
+    :endsection
+
+    :section Update Data
 
     ∇ (rc msg data)←UpdateClient(cid name email uid pwd salt);dir;ind;inds
       :Access public shared
@@ -183,7 +211,7 @@
       :EndHold
     ∇
 
-    ∇ (rc msg sid)←UpdateScenario(sid params);dir;ind;ptr
+    ∇ (rc msg sid)←UpdateScenario(sid sname params);dir;ind;ptr
       :Access public shared
       (rc msg)←0 ''
       :Hold 'scenario'
@@ -191,8 +219,8 @@
           dir←getScenarioDir
           :If 0≠ind←dir[;1]#.utils.iotaz sid
               params putScenarioParameters ptr←⊃dir[ind;3]
-              ⍬ port putScenarioResults ptr
-              dir[ind;5]←⊂⎕TS
+              ⍬ putScenarioResults ptr
+              dir[ind;4 5]←sname ⎕TS
               putScenarioDir dir
           :Else
               (rc msg)←5 'scenario not found'
@@ -200,6 +228,10 @@
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
+
+    :endsection
+
+    :section Reporting
 
     ∇ (rc msg data)←ClientSummary cid;pdir;sdir
          ⍝ returns [;1] portfolio name [;2] number commodities [;3] number scenarios [;4] created [;5] last update [;6] pid [;7] pdet
@@ -267,6 +299,9 @@
       :EndHold
     ∇
 
+    :endsection
+
+    :section Calculation
 
     ∇ (rc msg r)←RunScenario sid;today;scen;port;max;dates;days;portfolio;data
       :Access public shared
@@ -285,6 +320,7 @@
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
+    :endsection
 
     :section Authentication
 
@@ -325,26 +361,6 @@
 ⍝ registration involves
 ⍝ 1 - send (and remember) random original salt (origSalt) using #.utils.salt
 ⍝ 2 - user fills out form, hashPass is computed as hash(origSalt,password) - send this value and NOT the actual password
-
-    ∇ (rc msg cid)←AddClient(name email userid pwd salt);dir
-      :Access public shared
-     ⍝ rc= 1 userid in use, 2 email in use
-      (rc msg cid)←0 '' 0
-      :Hold 'client'
-          ⎕FHOLD clientTn
-          dir←getClientDir
-          :If 0∊⍴userid ⋄ (rc msg)←1 'empty userid' ⋄ →Done ⋄ :EndIf
-          :If 0∊⍴email ⋄ (rc msg)←2 'empty email' ⋄ →Done ⋄ :EndIf
-          :If 0∊⍴name ⋄ (rc msg)←3 'empty name' ⋄ →Done ⋄ :EndIf
-          :If ~0∊⍴dir
-              :If (⊂userid)∊dir[;4] ⋄ (rc msg)←1 'userid in use' ⋄ →Done ⋄ :EndIf
-              :If (⊂email)(∊#.utils.cis)dir[;3] ⋄ (rc msg)←2 'email in use' ⋄ →Done ⋄ :EndIf
-          :EndIf
-          cid←nextClientId
-          putClientDir dir⍪cid name email userid pwd salt''⍬
-     Done:⎕FHOLD ⍬
-      :EndHold
-    ∇
 
 
 ⍝ password reset involves
@@ -491,20 +507,26 @@
       r←getCommodityDir{(⍺[;2],⊂'??? Not found')[⍺[;1]⍳⍵]}eis cmid
     ∇
 
+    ∇ (rc msg data)←GetCommodities
+      :Access public shared
+      (rc msg)←0 ''
+      data←getCommodityDir
+    ∇
 
     :endsection
 
     :section Misc
 
-    ∇ port←RandomPortfolio;cdir;n;inds;r;qty
+    ∇ port←RandomPortfolio;cdir;n;inds;r;qty;dates;prices
       ⍝ generate a random portfolio
       :Access public shared
-     
       cdir←getCommodityDir
       n←⍬⍴⍴cdir
       inds←(r←?n)?n
       qty←100×?r⍴20
-      port←(cdir[inds;1 3],qty)[;1 3 2],⊂⎕TS
+      dates←#.utils.IDNToDate(⌊#.utils.DateToIDN ⎕TS)-?(⍴inds)⍴365
+      prices←2 #.utils.round{⍵×1+¯0.2+0.4×?(⍴,⍵)⍴0}cdir[inds;3] ⍝ random price +/- 20% "current"
+      port←(cdir[inds;1],prices,[1.1]qty)[;1 3 2],dates
     ∇
 
     ∇ CleanupFiles;mask;comps
@@ -530,6 +552,7 @@
     ∇
 
     eis←{(,∘⊂)⍣((326∊⎕DR ⍵)<2>|≡⍵)⊢⍵} ⍝ Enclose if simple
+
     :endsection
 
     :section Unit_Tests
