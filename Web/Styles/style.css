@@ -1,30 +1,32 @@
+html, .container, .e-link, .primBtn {
+    font-family: OSL, sans-serif;
+}
+
+b, strong{
+    font-weight: normal;
+    font-family: OSCB, sans-serif;
+    font-size: 1.5em;
+}
+
 .dc-tabs>label {
     font-size: larger;
 }
 
 .primBtn {
+    color: #179bd7;
     background: white;
     padding: 0.5em;
-    border: 5px solid grey;
-    border-radius: 10px;
-    font-weight: bold;
-    font-family: serif;
+    border: 1px solid #c8c8c8;
+    border-top: 2px solid #179bd7;
     font-size: medium;
-    box-shadow: black 1px 1px 5px;
-    transition: 0.2s;
-    margin-left: 50%;
+    margin-left: 75%;
     margin-top: 0.5em;
+    width: 6em;
 }
 
-.primBtn:active {
-    margin-top: calc(0.5em + 1px);
-    margin-left: calc(50% + 1px);
-    box-shadow: none;
-    outline: none;
-}
-
-.primBtn:hover{
-    border-color:black;
+.primBtn:hover {
+    color: black;
+    background: #86cbea;
 }
 
 .noscript {
@@ -33,16 +35,13 @@
     padding: 8px;
     background-color: red;
     color: yellow;
-    font-weight: 800;
-    font-family: sans-serif;
     font-size: 1.4em;
     text-align: center;
 }
 
 #title,#slogan {
     font-size: 200%;
-    /* font-family: Organica, sans-serif; */
-    	 font-family: "Open Sans Condensed";
+    font-family: OSCB, sans-serif;
     color: white;
     text-shadow: grey 1px 1px 0,grey 2px 2px 0, black 3px 3px 5px;
     text-align: center;
@@ -50,15 +49,12 @@
 
 #logo {
     text-align: center;
-    /* font-family: Organica, sans-serif; */
-    	 font-family: "Open Sans Condensed";
     color: white;
     display: block;
-    content: "B11";
 }
 
 #B11 {
-    font-size: calc(5 * 200%);
+    font-size: 667%;
     text-shadow: grey 1px 1px 0,grey 2px 2px 0,grey 3px 3px 0,grey 4px 4px 0,grey 5px 5px 0,grey 6px 6px 0,grey 7px 7px 0,grey 8px 8px 0,grey 9px 9px 0,grey 10px 10px 0 ,black 10px 10px 25px,black 10px 10px 25px,black 10px 10px 25px,black 10px 10px 25px,black 10px 10px 25px;
 }
 
@@ -73,39 +69,47 @@
 }
 
 html {
-    position: relative;
-    background: url("quarters-and-pennies-1259107.jpg") no-repeat center center;
-    height: 100vh;
-    overflow: hidden;
+    background: #179bd7 url("water.jpg") no-repeat;
+    background-size: cover;
 }
-
 body {
-    background: linear-gradient(#B11,transparent);
-    height: 100vh;
+    background: linear-gradient(#179bd7,transparent,white);
+    height: 100%
 }
 
-/* @font-face {
-    font-family: Organica;
-    src: url("Kingthings Organica.ttf");
+@font-face {
+    font-family: OSCB;
+    src: url("OpenSans-CondBold.ttf");
 }
-*/
-.pfitemcnt {/* Portfolio Item-Counter (in PF-Tabs) */
- 	float: right;
- 	border: thin solid grey; border-radius: 5px;
- 	background-color: orange;
- 	color: black;
- }
- 
 
- 
- 
- /* Extra-Small devices  */
-@media (max-width: 768px) { 
-	.show-lg {	display: none;}
-	.show-md {	display: none;}
+@font-face {
+    font-family: OSL;
+    src: url("OpenSans-Light.ttf");
+}
+
+.pfitemcnt {
+    /* Portfolio Item-Counter (in PF-Tabs) */
+    float: right;
+    border: thin solid grey;
+    border-radius: 5px;
+    background-color: orange;
+    color: black;
+}
+
+/* Extra-Small devices  */
+@media (max-width: 768px) {
+    .show-lg {
+        display: none;
+    }
+
+    .show-md {
+        display: none;
+    }
 }
 
 /* Medium devices  */
-@media (min-width: 768px) AND (max-width: 1023px) { 
-	.show-lg {	display: none;}
+@media (min-width: 768px) AND (max-width: 1023px) {
+    .show-lg {
+        display: none;
+    }
 }
