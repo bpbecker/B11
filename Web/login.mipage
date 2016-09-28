@@ -6,24 +6,25 @@
       Use'jsSHA'
       title←'B11 - Login'
      
-      (R←'.container'Add _.div)Position'center' 'center' '.container'
+      (R←'.container' '#mainCnt'Add _.div)Position'center' 'center' '.container'
      
       MyTabs←'#loginTabs'R.Add _.ejTab
       MyTabs.Sections←MakeTab¨⍳2
-      MyTabs.Titles←((_.Icon'fa-sign-in')' Log in')((_.Icon'fa-user-plus')' Sign up')
+      MyTabs.Titles←((_.Icon'fa-sign-in')' Login')((_.Icon'fa-user-plus')' Sign Up')
       MyTabs.Theme←'0'
     ∇
 
 
-    ∇ R←MakeTab i;msg;form;ig;sbtn
+    ∇ R←MakeTab i;msg;ig;sbtn;form
       R←'.container'New _.div
-      msg←('#welcome',⍕R)R.Add _.div(_.b 'Welcome!')_.br
+      msg←('#welcome',⍕R)R.Add _.div
+      '#welcome_title'msg.Add _.p'Welcome!'
      
       :Select i
       :Case 1
-              msg.Add'If you''re a returning customer, please login using your credentials. '
-              msg.Add(_.jBox'Tooltip' 'Sorry, this function is not yet implemented!' '(Forgot your password?)')_.br
-              msg.Add'If you''re a new visitor, most functionality will require you to login, so why not signup right now? (Hint:it''s free!)' _.br _.br
+          msg.Add'If you''re a returning customer, please login using your credentials. '
+          msg.Add(_.jBox'Tooltip' 'Sorry, this function is not yet implemented!' '(Forgot your password?)')_.br
+          msg.Add'If you''re a new visitor, most functionality will require you to login, so why not signup right now? (Hint:it''s free!)'_.br _.br
           form←R.Add _.Form
           ig←'#login'form.Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-tag' 'fa-lock'
@@ -36,7 +37,7 @@
           ig.Inputs[2].On'blur' 0 '' 'HashPass()'
      
         ⍝ Submit-Button
-          sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Log in')
+          sbtn←'class="primBtn" id="loginBtn" type="submit"'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Login')
           sbtn.On'click' 'Login'(('uid' 'val' '#Luserid')('hpwd' 'val' '#Hpswd')('tslt' 'val' '#Tsalt'))
      
           Add _.Script ScriptFollows
@@ -51,9 +52,9 @@
      
      
       :Case 2
-              msg.Add 'Thank you for your interest in B11. Please be assured that our professional brokerage-platform will meet all your trading-needs'
-              msg.Add ' and exceed your wildest expectations. Our team of dedicated and professional developers is continously working in several timezones'
-              msg.Add ' to enhance the features and the user-experience of this platform. We do look forward to getting to know you and to help your business grow.'
+          msg.Add'Thank you for your interest in B11. Please be assured that our professional brokerage-platform will meet all your trading-needs'
+          msg.Add' and exceed your wildest expectations. Our team of dedicated and professional developers is continously working in several timezones'
+          msg.Add' to enhance the features and the user-experience of this platform. We do look forward to getting to know you and to help your business grow.'
           Ssalt←#.utils.salt 32
           ig←(form←'#signup'R.Add _.Form).Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-user' 'fa-tag' 'fa-at' 'fa-lock'
@@ -68,7 +69,7 @@
           'Shpw'form.Add _.Input'hidden' ''  ⍝ hashed pswd used for signup
           (form.Add _.input).(type name)←'hidden' 'Lpswd'
      
-          sbtn←'class="primBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Sign up')
+          sbtn←'class="primBtn" id="signupBtn"'R.Add _.Button(⊂(New _.Icon'fa-user-plus'),' Signup')
           sbtn.On'click' 'Signup'(('name' 'val' '#Sname')('mail' 'val' '#Smail')('uid' 'val' '#Suserid')('hpwd' 'val' '#Shpw'))
      
           Add _.Script ScriptFollows
@@ -104,7 +105,7 @@
       :EndIf
     ∇
 
-    ∇ R←Signup;ret;Sname;Smail;Suserid;Hpswd
+    ∇ R←Signup;Sname;Smail;Suserid;Hpswd;ret
       :Access public
       Sname←Get'name'
       Smail←Get'mail'

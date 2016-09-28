@@ -4,28 +4,29 @@
     :field public name
     :field public mail
 
+    Index←{⍵/⍳⍴⍵}  ⍝ Tool: index of 1s in boolean vector
 
-    ∇ Compose;R;mn
+    ∇ Compose;ClientSummary
       :Access public
       Use'jBox'
       →PreFlightCheck↓0
+      ClientSummary←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
       Add _.title #.Boot.ms.Config.Name
-      Add _.ejTab('<i class="fa fa-table"></i> Portfolios' '<i class="fa fa-magic"></i> Scenarios' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
+      '#maintabs'Add _.ejTab('<i class="fa fa-table"></i> Portfolios' '<i class="fa fa-magic"></i> Scenarios' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
     ∇
 
 
-    ∇ R←MakeTab i;ig
+    ∇ R←MakeTab i;pfl_titles;pflgrid;tbi;pfgrid;pfc_titles;pfcgrid;pfsc;pflist;pfs;ig;sbtn
       R←'.container'New _.div
       :Select i
       :Case 1
-          cs←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
           ⍝cc←CatchAPIErrors(SessionGet'APIref').CallAPI'GetCommodities'
      
-          :If 0∊⍴cs
+          :If 0∊⍴ClientSummary
               pflist←0 4⍴''
           :Else
-              pfs←{CatchAPIErrors(SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))}¨cs[;6]
-              pflist←cs[;1 5 2 3]
+              pfs←{CatchAPIErrors(SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))}¨ClientSummary[;6]
+              pflist←ClientSummary[;1 5 2 3]
           :EndIf
           '#h2pfl'R.Add _.h2'Your portfolios'
           pfl_titles←'Name' 'Last Update' '# Commodities' '# Scenarios'
@@ -34,7 +35,8 @@
           'toolbarSettings'pflgrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
           'editSettings'pflgrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true}'
           'allowSorting'pflgrid.Set _true
-          pflgrid.On'cellSelected' 'CallbackFn'('editcell' 'argument' 'data')
+          pflgrid.On'cellSelected' 'CallbackFn'('currcell' 'argument' 'data')
+     
      
           '#h2pfc'R.Add _.h2'Listing of current portfolio'
      
@@ -51,14 +53,16 @@
      
       :Case 3
           ig←'#t3settings'(R.Add _.Form).Add _.InputGrid
-          ig.Labels←'<i class="fa fa-user"></i>' '<i class="fa fa-at"></i>'
+          ⍝ ig.Labels←'<i class="fa fa-user"></i>' '<i class="fa fa-at"></i>'
+          ig.Labels←(New _.Icon'fa-user')(New _.Icon'fa-at')
           ig.Inputs←'name' 'mail'New¨_.EditField _.EditField
           ig.Inputs[1 2].SetAttr⊂'style="width:30em;"'
           ⍝ig.Inputs[1 2].SetAttr¨⊂¨(⊂'placeholder="'),¨'Name"' 'Email"'
           ⍝ nope
           ig.Inputs[1].SetAttr⊂'placeholder="Your Name"'
           ig.Inputs[2].SetAttr⊂'placeholder="Email"'
-          sbtn←'style="margin-top:1em;" class="primBtn"'R.Add _.Button'<i class="fa fa-floppy-o"></i> Save'
+⍝          sbtn←'style="margin-top:1em;" class="primBtn" id="saveBtn"'R.Add _.Button'<i class="fa fa-floppy-o"></i> Save'
+          sbtn←'style="margin-top:1em;" class="primBtn" id="saveBtn"'R.Add _.Button(⊂(New _.Icon'fa-floppy-o'),' Save')
           sbtn.On'click' 'SaveTab3'
       :EndSelect
       R←R.Render

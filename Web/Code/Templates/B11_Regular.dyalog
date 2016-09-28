@@ -1,5 +1,5 @@
 ﻿:Class B11_Regular : MiPage
-⍳
+
     :Field Public nl←⎕ucs 13
     :Field public RequiresLogin←1
     :field public title←'' ⍝ server.Config.Name would have been nicer, but we can't do that
@@ -14,21 +14,20 @@
 
 
 
-∇ z←PreFlightCheck
-:access public
-z←1
-
-      :If RequiresLogin
-      :AndIf ~IfInstance'login'
-      :AndIf 0=2⊃⎕VFI⍕'0'SessionGet'UID'   ⍝ Session-Variable "UID" will hold a (numeric) UserId (or 0 if user if not logged in)
+    ∇ z←PreFlightCheck
+      :Access public
+      z←1
+     
+      :If RequiresLogin                    ⍝ if Page requires user to be signed in
+      :AndIf ~IfInstance'login'            ⍝ and we're not loading the login-Page
+      :AndIf 0=2⊃⎕VFI⍕'0'SessionGet'UID'   ⍝ and do not yet have UID (Session-Variable "UID" will hold a (numeric) UserId (or 0 if user if not logged in))
           _Request.Session.UID←z←0
-          _Request.Redirect'/login.mipage'
+          _Request.Redirect'/login.mipage' ⍝ then redirect to login
       :EndIf
-'PreFlightCheck=',z
+     
+    ∇
 
-∇
-
-    ∇ {r}←Wrap;lang;server;mn
+    ∇ {r}←Wrap;server;hd;H1title
       :Access Public
       server←_Request.Server
       :If '###'≡'###'SessionGet'showMsg'
@@ -36,25 +35,27 @@ z←1
       :EndIf
      
       :If title≡'' ⋄ title←server.Config.Name ⋄ :EndIf  ⍝ set a default
-
+     
     ⍝ useful in dev: append ?fakeit=1 to URLs to get access despite not being signed in. (Remove in production)
       :If 0<2⊃⎕VFI⍕'0'Get'fakeit'
       :AndIf server.Config.Production=0      ⍝ better safe than sorry - make sure this is disabled in production!
           _Request.Session.UID←1
       :EndIf
-      ⍝ when page other than login is called: check if user is logged in,
-      ⍝ otherwise redirect to index immediately (replacing all HTML of the response...)
      
-      Use'⍕/Styles/reset.css'
-      Use'JQuery'
-      ⍝ FA, Panel & jBox required for showMsg to display stuff, potentially via callbacks. So make sure they are always there.
-      Use'faIcons'
+     
+      Add _.StyleSheet'/Styles/reset.css'
+      ⍝⍝ FA, Panel & jBox required for showMsg to display stuff, potentially via callbacks. So make sure they are always there.
+      ⍝Use'faIcons'  ⍝ no longer needed, used on every single page anyway
+   ⍝ jBox is a different story, it may happen that a callback creates the first jBox ever. So let's explicitely load the resource:
       Use'jBox'
-      Use'dcPanel'
-      Use'⍕/Styles/style.css'                  ⍝ add a link to our CSS stylesheet
-      Use'⍕/Syncfusion/assets/css/web/',theme,'/ej.widgets.all.min.css'
-      Use'⍕/Syncfusion/assets/css/web/',theme,'/ej.theme.min.css'
-      Add _.link 'href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet"'
+     
+      Add _.StyleSheet'/Styles/style.css'                  ⍝ add a link to our CSS stylesheet
+     
+      Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.widgets.all.min.css')
+      Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.theme.min.css')         ⍝ SF-Template
+     
+      ⍝ loading the font will only work when online (likely to be removed any way after Adáms styling...)
+      Add _.link'href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet"'
      
     ⍝ set the title display in the browser to the name of the application defined in Config/Server.xml
       Add _.title title ⍝ we do that on the individual MiPages!
@@ -66,27 +67,22 @@ z←1
       hd←New _.noscript
       hd.Add _.div'Limited functionality w/o JavaScript!' 'class="class=col-lg-10 noscript"'
       ⍝ hd,←'#title'New _.h1 (5↓server.Config.Name)
-      hd,←tit←'#title'New _.h1
+      hd,←H1title←'#title'New _.h1
       ⍝ Sorry, hardcoding name here so that it can be made responsive
-      '.show-md' tit.Add _.span'B11: '
-      tit.Add _.span'Best British Bond Broker Business'
-      '.show-md'tit.Add _.span' By'
-      '.show-lg'tit.Add _.span' Bold Brian'
-      '.show-md'tit.Add _.span' Becker'
-      '.show-md'tit.Add _.span' &amp;'
-      '.show-lg'tit.Add _.span' Brave Biene''s Busy '
-      '.show-md'tit.Add _.span'Baas'
-      '.show-lg'tit.Add _.span'i'
-      hd,←'#logo'New _.div(('B11'New _.span '<b>B11</b>')('#slogan'New _.p 'More Bang for the Buck'))
+      '.show-md'H1title.Add _.span'B11: '
+      H1title.Add _.span'Best British Bond Broker Business'
+      '.show-md'H1title.Add _.span' By'
+      '.show-lg'H1title.Add _.span' Bold Brian'
+      '.show-md'H1title.Add _.span' Becker'
+      '.show-md'H1title.Add _.span' &amp;'
+      '.show-lg'H1title.Add _.span' Brave Biene''s Busy'
+      '.show-md'H1title.Add _.span' Baas'
+      '.show-lg'H1title.Add _.span'i'
+      hd,←'#logo'New _.div(('B11'New _.span'<b>B11</b>')('#slogan'New _.p'More Bang for the Buck'))
       :While 0<⍴_Request.Session.showMsg
           :If 0>⊃1⊃_Request.Session.showMsg   ⍝ there is an errormsg (or a warning) to show!
               OnLoad,←_.jBox.Modal(New _.Panel((,2⊃t)(t[1]⊃'warn' 'error')))
           :ElseIf 0<⊃t←1⊃_Request.Session.showMsg
-⍝              OnLoad,←('blue' 'green')[1⊃t]_.jBox.Notice(New _.Icon('fa-info-circle' 'fa-check')[1 2⍳1⊃t],2⊃t)
-⍝25:SYNTAX ERROR
-⍝New[4] r._PageRef←⎕THIS
-⍝      ∧
-⍝ [*Question*]: Brian, code above caused error. Variant below works. OK for u?
               OnLoad,←('blue' 'green')[1⊃t]_.jBox.Notice((#.HtmlElement.New _.Icon(t[1]⊃'fa-info-circle' 'fa-check')),2⊃t)
           :EndIf
           _Request.Session.showMsg←1↓_Request.Session.showMsg
@@ -123,10 +119,9 @@ z←1
       R←Execute('window.location="/index";')
     ∇
 
-    ∇ R←IfInstance nam
+    ∇ R←IfInstance nam;A1;A2
       A1←#.Strings.uc'[',nam,']'
       A2←#.Strings.uc⍕⎕NSI
-⍝      ∘∘∘
       R←∨/A1⍷A2
     ∇
 
