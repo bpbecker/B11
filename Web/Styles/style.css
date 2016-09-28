@@ -2,7 +2,7 @@ html, .container, .e-link, .primBtn {
     font-family: OSL, sans-serif;
 }
 
-b, strong{
+b, strong, #logo {
     font-weight: normal;
     font-family: OSCB, sans-serif;
     font-size: 1.5em;
@@ -19,9 +19,23 @@ b, strong{
     border: 1px solid #c8c8c8;
     border-top: 2px solid #179bd7;
     font-size: medium;
-    margin-left: 75%;
     margin-top: 0.5em;
     width: 6em;
+}
+
+#loginBtn {
+    margin-left: calc(100% - 6em);
+}
+
+#logout {
+    position: fixed;
+    top: 0;
+    right: 0;
+    margin: 0;
+}
+
+#title {
+    margin: 0 4em;
 }
 
 .primBtn:hover {
@@ -40,7 +54,6 @@ b, strong{
 }
 
 #title,#slogan {
-    font-size: 200%;
     font-family: OSCB, sans-serif;
     color: white;
     text-shadow: grey 1px 1px 0,grey 2px 2px 0, black 3px 3px 5px;
@@ -51,17 +64,32 @@ b, strong{
     text-align: center;
     color: white;
     display: block;
+    margin-top: -1em;
 }
 
 #B11 {
-    font-size: 667%;
+    font-size: 450%;
     text-shadow: grey 1px 1px 0,grey 2px 2px 0,grey 3px 3px 0,grey 4px 4px 0,grey 5px 5px 0,grey 6px 6px 0,grey 7px 7px 0,grey 8px 8px 0,grey 9px 9px 0,grey 10px 10px 0 ,black 10px 10px 25px,black 10px 10px 25px,black 10px 10px 25px,black 10px 10px 25px,black 10px 10px 25px;
+    display: block;
+    margin-bottom: -0.35em;
 }
 
 .container {
     min-height: 32vh;
-    margin: 2em auto;
-    width: 68%;
+    margin: 2em auto 0 auto;
+    /* width: 50%; */
+    max-width: 50em;
+}
+
+#maintabs {
+    margin-top: 2em;
+    position: absolute;
+    top: 1.5em;
+    width: 100%;
+}
+
+#maintabs > div {
+    min-height: calc(100vh - 7.5em);
 }
 
 .floatRight {
@@ -72,19 +100,20 @@ html {
     background: #179bd7 url("water.jpg") no-repeat;
     background-size: cover;
 }
+
 body {
     background: linear-gradient(#179bd7,transparent,white);
-    height: 100%
+    height: 100vh;
 }
 
 @font-face {
     font-family: OSCB;
-    src: url("OpenSans-CondBold.ttf");
+    src: url("OpenSans-CondBold.woff");
 }
 
 @font-face {
     font-family: OSL;
-    src: url("OpenSans-Light.ttf");
+    src: url("OpenSans-Light.woff");
 }
 
 .pfitemcnt {

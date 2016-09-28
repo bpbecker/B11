@@ -78,7 +78,6 @@
       '.show-lg'H1title.Add _.span' Brave Biene''s Busy'
       '.show-md'H1title.Add _.span' Baas'
       '.show-lg'H1title.Add _.span'i'
-      hd,←'#logo'New _.div(('B11'New _.span'<b>B11</b>')('#slogan'New _.p'More Bang for the Buck'))
       :While 0<⍴_Request.Session.showMsg
           :If 0>⊃1⊃_Request.Session.showMsg   ⍝ there is an errormsg (or a warning) to show!
               OnLoad,←_.jBox.Modal(New _.Panel((,2⊃t)(t[1]⊃'warn' 'error')))

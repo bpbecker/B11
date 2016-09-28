@@ -5,6 +5,7 @@
       RequiresLogin←0
       Use'jsSHA'
       title←'B11 - Login'
+      '#logo'Add _.div(('B11'New _.span'<b>B11</b>')('#slogan'New _.p'More Bang for the Buck'))
      
       (R←'.container' '#mainCnt'Add _.div)Position'center' 'center' '.container'
      
@@ -99,7 +100,9 @@
           newUrl←(_Request.GetHeader'origin'),'/index'  ⍝ Host
           _Request.Session.(UID tUID)←3⊃ret
           _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
-          R←Execute('window.location="',newUrl,'";')
+          ⍝ R←Execute('window.location="',newUrl,'";')
+          ⍝ R←Execute('window.location.href="',newUrl,'";')
+          R←Execute('location.assign("',newUrl,'");')
       :Else
           R←Execute _.jBox.Modal New _.Panel(2⊃ret)'error'
       :EndIf
