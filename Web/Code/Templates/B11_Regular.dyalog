@@ -92,7 +92,7 @@ z←1
           _Request.Session.showMsg←1↓_Request.Session.showMsg
       :EndWhile
       :If 0<2⊃⎕VFI⍕'0'SessionGet'UID'
-          lgOut←'.primBtn e-recuredit floatRight'New _.button((New _.Icon'fa-sign-out'),'Logout')
+          lgOut←'#logout' '.primBtn e-recuredit floatRight'New _.button((New _.Icon'fa-sign-out'),'Log out')
           lgOut.On'click' 'Logout'
           hd,←lgOut
       :EndIf
