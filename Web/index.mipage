@@ -10,7 +10,7 @@
       Use'jBox'
       →PreFlightCheck↓0
       Add _.title #.Boot.ms.Config.Name
-      Add _.ejTab('<i class="fa fa-table"></i> Data' '<i class="fa fa-magic"></i> Analysis' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
+      Add _.ejTab('<i class="fa fa-table"></i> Portfolios' '<i class="fa fa-magic"></i> Scenarios' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
     ∇
 
 
@@ -18,18 +18,37 @@
       R←'.container'New _.div
       :Select i
       :Case 1
-cs← CatchAPIErrors (SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))  
-cc← CatchAPIErrors (SessionGet'APIref').CallAPI'GetCommodities'
-
-:if 0∊⍴cs
-    '.primBtn'R.Add _.Button(⊂(_.Icon'fa-plus-square')'Add Portfolio')
-:else 
-    pfs← {CatchAPIErrors (SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))    }¨cs[;6]
-  R.Add _.ejAccordion(PFTitles¨↓cs)(PFContent¨pfs) 
-:endif
+          cs←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
+          ⍝cc←CatchAPIErrors(SessionGet'APIref').CallAPI'GetCommodities'
+     
+          :If 0∊⍴cs
+              pflist←0 4⍴''
+          :Else
+              pfs←{CatchAPIErrors(SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))}¨cs[;6]
+              pflist←cs[;1 5 2 3]
+          :EndIf
+          '#h2pfl'R.Add _.h2'Your portfolios'
+          pfl_titles←'Name' 'Last Update' '# Commodities' '# Scenarios'
+          pflgrid←'#portfoliolist'R.Add _.ejGrid(pflist pfl_titles)
+          tbi←2↓∊', ej.Grid.ToolBarItems.'∘,¨'Add' 'Edit' 'Delete' 'Update' 'Cancel'
+          'toolbarSettings'pflgrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
+          'editSettings'pflgrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true}'
+          'allowSorting'pflgrid.Set _true
+          pflgrid.On'cellSelected' 'CallbackFn'('editcell' 'argument' 'data')
+     
+          '#h2pfc'R.Add _.h2'Listing of current portfolio'
+     
+          pfgrid←0 6⍴' '
+          pfc_titles←'ID' 'Name' 'Purchase Date' 'Shares' 'Price' 'Value'
+          pfcgrid←'#portfoliogrid'R.Add _.ejGrid(pfgrid pfc_titles)
+          'toolbarSettings'pfcgrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
+          'editSettings'pfcgrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true}'
+          'allowSorting'pfcgrid.Set _true
      
       :Case 2
      ⍝ ∘∘∘Write code∘∘∘
+     
+     
       :Case 3
           ig←'#t3settings'(R.Add _.Form).Add _.InputGrid
           ig.Labels←'<i class="fa fa-user"></i>' '<i class="fa fa-at"></i>'
@@ -55,6 +74,11 @@ cc← CatchAPIErrors (SessionGet'APIref').CallAPI'GetCommodities'
       R←Execute'green'#._.jBox.Notice'<i class="fa fa-check"></i> Settings saved.'
     ∇
 
+    ∇ R←CallbackFn
+      :Access public
+      ∘∘∘
+    ∇
+
 
     ∇ R←PFTitles pf
  ⍝ return a nicely formatted vector with the titles of the individual portfolios of a client
@@ -62,11 +86,11 @@ cc← CatchAPIErrors (SessionGet'APIref').CallAPI'GetCommodities'
  ⍝ and of course smoother colours etc.  ;-)
       R←'.pftitle'#.HtmlElement.New _.span(pf[1],' (',pf[5],')')
       R,←'.pfitemcnt'#.HtmlElement.New _.span(⍕pf[2]),'/',⍕pf[3]  ⍝ Commodities/Scenarios
-    ∇  
+    ∇
 
 
     ∇ R←PFContent pfmat;hdr
       hdr←'ID' 'Name' 'Purchase Date' 'Shares' 'Price' 'Value'
-      R←New _.DataTable(hdr⍪pfmat)''1
+      R←New _.DataTable(hdr⍪pfmat)'' 1
     ∇
 :endclass
