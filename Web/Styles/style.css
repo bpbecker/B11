@@ -97,12 +97,12 @@ b, strong, #logo {
 }
 
 html {
-    background: #179bd7 url("water.jpg") no-repeat;
+    background: #179bd7 url("money.jpg") no-repeat;
     background-size: cover;
 }
 
 body {
-    background: linear-gradient(#179bd7,transparent,white);
+    background: linear-gradient(rgb(23, 155, 215),rgba(139,205,235,0.75),rgba(255, 255, 255, 0.75));
     height: 100vh;
 }
 
