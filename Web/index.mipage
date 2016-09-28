@@ -3,10 +3,11 @@
     :field public t3settings
     :field public name
     :field public mail
+    :field public ClientSummary
 
     Index←{⍵/⍳⍴⍵}  ⍝ Tool: index of 1s in boolean vector
 
-    ∇ Compose;ClientSummary
+    ∇ Compose
       :Access public
       Use'jBox'
       →PreFlightCheck↓0
@@ -28,6 +29,7 @@
               pfs←{CatchAPIErrors(SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))}¨ClientSummary[;6]
               pflist←ClientSummary[;1 5 2 3]
           :EndIf
+     
           '#h2pfl'R.Add _.h2'Your portfolios'
           pfl_titles←'Name' 'Last Update' '# Commodities' '# Scenarios'
           pflgrid←'#portfoliolist'R.Add _.ejGrid(pflist pfl_titles)
@@ -35,7 +37,7 @@
           'toolbarSettings'pflgrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
           'editSettings'pflgrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true}'
           'allowSorting'pflgrid.Set _true
-          pflgrid.On'cellSelected' 'CallbackFn'('currcell' 'argument' 'data')
+          pflgrid.On'rowSelected' 'CallbackFn'(('ridx' 'argument' 'rowIndex'))  ⍝ ⎕IO of rowindex=0
      
      
           '#h2pfc'R.Add _.h2'Listing of current portfolio'
@@ -48,12 +50,17 @@
           'allowSorting'pfcgrid.Set _true
      
       :Case 2
+          pfsc←BuildListPfSc ClientSummary
+          '#pfselSel'R.Add _.ChainedSelect pfsc
+     
      ⍝ ∘∘∘Write code∘∘∘
      
      
       :Case 3
           ig←'#t3settings'(R.Add _.Form).Add _.InputGrid
           ⍝ ig.Labels←'<i class="fa fa-user"></i>' '<i class="fa fa-at"></i>'
+          ⍝ Following would be nice, but does not produce desired effect, so for the time being it is commented out.
+          ⍝ If you are reading this and have time to find a working solution, pls. feel free to rewrite
           ig.Labels←(New _.Icon'fa-user')(New _.Icon'fa-at')
           ig.Inputs←'name' 'mail'New¨_.EditField _.EditField
           ig.Inputs[1 2].SetAttr⊂'style="width:30em;"'
@@ -61,12 +68,22 @@
           ⍝ nope
           ig.Inputs[1].SetAttr⊂'placeholder="Your Name"'
           ig.Inputs[2].SetAttr⊂'placeholder="Email"'
-⍝          sbtn←'style="margin-top:1em;" class="primBtn" id="saveBtn"'R.Add _.Button'<i class="fa fa-floppy-o"></i> Save'
           sbtn←'style="margin-top:1em;" class="primBtn" id="saveBtn"'R.Add _.Button(⊂(New _.Icon'fa-floppy-o'),' Save')
           sbtn.On'click' 'SaveTab3'
       :EndSelect
       R←R.Render
     ∇
+
+
+    ∇ R←BuildListPfSc cs;i
+      R←0 3⍴0
+      :For i :In Index cs[;3]>0
+     
+      :EndFor
+     
+     
+    ∇
+
 
     ∇ R←SaveTab3
       :Access public
@@ -75,12 +92,22 @@
       ⎕←'Save that data!'
      
      
-      R←Execute'green'#._.jBox.Notice'<i class="fa fa-check"></i> Settings saved.'
+      R←Execute'green'#._.jBox.Notice(⊂(New _.Icon'fa-check'),' Settings saved.')
     ∇
 
     ∇ R←CallbackFn
       :Access public
-      ∘∘∘
+      :Select _event
+      :Case 'rowSelected'
+          i←1+2⊃⎕VFI'0'Get'ridx'  ⍝ i = index of portfolio
+          pf←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioSummary'((SessionGet'UID'),ClientSummary[i;6])
+⍝ pf grid is resized after refreshContent to correct number of rows, but does not show content :(
+⍝ https://help.syncfusion.com/js/api/ejgrid#methods:datasource
+          R←Execute('var gobj = $("#portfoliogrid").data("ejGrid");gobj.dataSource(',(#.JSON.fromAPL pf),');gobj.refreshContent(true);')
+      :Else
+          ⎕←'No handler for event ',_event
+          ∘∘∘
+      :EndSelect
     ∇
 
 
