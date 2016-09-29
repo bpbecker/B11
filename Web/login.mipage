@@ -16,7 +16,7 @@
      
       MyTabs←'#loginTabs'R.Add _.ejTab
       MyTabs.Sections←MakeTab¨⍳2
-      MyTabs.Titles←((_.Icon'fa-sign-in')' Login')((_.Icon'fa-user-plus')' Sign Up')
+      MyTabs.Titles←((New _.Icon'fa-sign-in')' Login')((New _.Icon'fa-user-plus')' Sign Up')
       MyTabs.Theme←'0'
     ∇
 
@@ -105,10 +105,7 @@
           newUrl←(_Request.GetHeader'origin'),'/index'  ⍝ Host
           _Request.Session.(UID tUID)←3⊃ret
           _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
-⍝         ⍝ R←Execute('window.location="',newUrl,'";')
-          ⍝ R←Execute('window.location.href="',newUrl,'";')
-          ⍝ R←'execute'('location.assign("',newUrl,'");return false;')
-          R←Execute'location.assign("index");'
+         R←Execute('location.assign("index");')
       :Else
           R←Execute _.jBox.Modal New _.Panel(2⊃ret)'error'
       :EndIf
