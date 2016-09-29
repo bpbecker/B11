@@ -513,9 +513,10 @@
       data←getCommodityDir
     ∇
 
-    ∇ r←GetScenariosForPortfolio pid
+    ∇ (rc msg data)←GetScenariosForPortfolio pid
       :Access public shared
-      r←pid{⍵⌿⍨⍵[;2]∊⍺}getScenarioDir
+      (rc msg)←0 ''
+      data←pid{⍵⌿⍨⍵[;2]∊⍺}getScenarioDir
     ∇
 
     :endsection
