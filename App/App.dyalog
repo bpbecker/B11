@@ -276,24 +276,30 @@
       :EndHold
     ∇
 
-    ∇ (rc msg data)←ScenarioSummary sid
-    ⍝ data = [;1] commodity id [;2] commodity name [;3] purchase date [;4] shares [;5] price [;6] value
+    ∇ (rc msg data)←ScenarioSummary pid;sdir;mask;port;pdetails;n;i;dummy;sparams;sresults
+    ⍝ return summary of scenarios for a portfolio
+    ⍝ data = [;1] scenario id [;2] scenario name [;3] scenario last run timestamp [;4] scenario horizon (last date in scenario data) [;5] scenario end value
       :Access public shared
-      (rc msg data)←0 ''(0 6⍴'' '' '' 0 0 0)
+      (rc msg data)←0 ''(0 5⍴0 ''⍬ ⍬ 0)
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
-          pdir←getPortfolioDir
-          :If ∨/mask←pdir[;2]=cid
-              :If ∨/mask←mask∧pdir[;1]=pid
-                  ind←mask/⍳⍴mask
-                  :If ~0∊⍴port←getPortfolio pdir[ind;3]
-                      data←port[;1],(CommodityName port[;1]),(#.utils.fmtDate¨port[;4]),{⍵[;1],#.utils.fmtCurrency¨⍵[;2 3]}{⍵,×/⍵}port[;2 3]
+          sdir←getScenarioDir
+          :If ∨/mask←sdir[;2]=pid
+              (port pdetails)←3⊃GetPortfolio pid
+              sdir←mask⌿sdir
+              data←((n←⍬⍴⍴sdir),5)⍴0
+              data[;1 2 3]←sdir[;1 4 5]
+              :For i :In ⍳n
+                  (dummy sparams sresults)←3⊃GetScenario sdir[i;1]
+                  :If ~0∊⍴sparams
+                      data[i;4]←⊂#.utils.IDNToDate⌈/∊#.utils.DateToIDN¨sparams[;1]
                   :EndIf
-              :Else
-                  (rc msg data)←4 'portfolio not found'pid
-              :EndIf
+                  :If ~0∊⍴sresults
+                      data[i;5]←(pdetails[;2],0)[pdetails[;1]⍳1↓sresults[;1]]+.×1↓sresults[;⊃¯1↑⍴sresults]
+                  :EndIf
+              :EndFor
           :Else
-              (rc msg data)←3 'client not found'cid
+              (rc msg data)←4 'portfolio not found'pid
           :EndIf
      Done:⎕FHOLD ⍬
       :EndHold
@@ -505,6 +511,17 @@
     ∇ r←CommodityName cmid
       :Access public shared
       r←getCommodityDir{(⍺[;2],⊂'??? Not found')[⍺[;1]⍳⍵]}eis cmid
+    ∇
+
+
+    ∇ r←PortfolioName pid
+      :Access public shared
+      r←getPortfolioDir{(⍺[;4],⊂'??? Not found')[⍺[;1]⍳⍵]}pid
+    ∇
+
+    ∇ r←ScenarioName sid
+      :Access public shared
+      r←getScenarioDir{(⍺[;4],⊂'??? Not found')[⍺[;1]⍳⍵]}sid
     ∇
 
     ∇ (rc msg data)←GetCommodities
