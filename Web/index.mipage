@@ -31,8 +31,26 @@
           :EndIf
      
           '#h2pfl'R.Add _.h2'Your portfolios'
-          pfl_titles←'Name' 'Last Update' '# Commodities' '# Scenarios'
-          pflgrid←'#portfoliolist'R.Add _.ejGrid(pflist pfl_titles)
+          
+          
+          pfColumns←⎕NS¨4⍴⊂''
+          pfColumns.field←'C1' 'C2' 'C3' 'C4'
+          pfColumns.headerText←'Name' 'Last Update' '# Commodities' '# Scenarios'
+          pfColumns.textAlign←'Left' 'Left' 'Right' 'Right'
+          pfColumns[2].format←'{0:yy/MM/dd}'
+     
+          tab←#.JSON.fromTable'C1' 'C2' 'C3' 'C4' ⍪pflist
+          tab.C2←1 #._JSS.JSDate¨tab.C2
+          tab2←1 0 1 #.JSON.fromAPL tab          
+
+          pflgrid←'#portfoliolist'R.Add _.ejGrid ((0 4⍴0)pfColumns)
+
+          ⍝'dataSource'pflgrid.Set tab2
+          ⍝ ↑↑ that did not do it. Would be nice if we had a way to avoid JS when assigning the data, but as I wanted to 
+          ⍝ have it formatted in SF, we need "new Date(ts[1],ts[2],ts[3])" for the date-column
+          ⍝ which seems to make it necessary to go that way:
+         R.Add _.Script (⊂'$(function(){var gobj=$("#portfoliolist").data("ejGrid"); gobj.dataSource(',tab2,');});')
+         
           tbi←2↓∊', ej.Grid.ToolBarItems.'∘,¨'Add' 'Edit' 'Delete' 'Update' 'Cancel'
           'toolbarSettings'pflgrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
           'editSettings'pflgrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true}'
@@ -40,18 +58,30 @@
           pflgrid.On'rowSelected' 'CallbackFn'(('ridx' 'argument' 'rowIndex'))  ⍝ ⎕IO of rowindex=0
      
      
-          '#h2pfc'R.Add _.h2'Listing of current portfolio'
+          cpf←'#currPf' 'style=display:none'R.Add _.div
+          '#h2pfc'cpf.Add _.h2'Listing of current portfolio'
      
           pfgrid←0 6⍴' '
-          pfc_titles←'ID' 'Name' 'Purchase Date' 'Shares' 'Price' 'Value'
-          pfcgrid←'#portfoliogrid'R.Add _.ejGrid(pfgrid pfc_titles)
+          pfColumns←⎕NS¨6⍴⊂''
+          pfColumns.field←'C1' 'C2' 'C3' 'C4' 'C5' 'C6'
+          pfColumns.headerText←'ID' 'Name' 'Purchase Date' 'Shares' 'Price' 'Value'
+          pfColumns.textAlign←'Left' 'Left' 'Right' 'Right' 'Right' 'Right'
+					pfColumns.width←↓'I2,<%>'⎕fmt 5 35 15 15 15 15    ⍝ Brian: that seems to have no effect?
+          pfColumns[3].format←'{0:yy/MM/dd}'
+          pfColumns[5 6].format←⊂'{0:c}'
+     
+          pfcgrid←'#portfoliogrid'cpf.Add _.ejGrid(pfgrid pfColumns)
           'toolbarSettings'pfcgrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
           'editSettings'pfcgrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true}'
           'allowSorting'pfcgrid.Set _true
+          'allowFiltering'pfcgrid.Set _true
+          'filterSettings'pfcgrid.Set'⍎{filterType: "excel"}'
      
       :Case 2
           pfsc←BuildListPfSc ClientSummary
-          '#pfselSel'R.Add _.ChainedSelect pfsc
+          ('#pfselSel'R.Add _.ChainedSelect pfsc).On'change' 'UpdateChart'
+     
+          ch←'#chartContainer'R.Add _.div
      
      ⍝ ∘∘∘Write code∘∘∘
      
@@ -78,9 +108,12 @@
     ∇ R←BuildListPfSc cs;i
       R←0 3⍴0
       :For i :In Index cs[;3]>0
-     
+          sc←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(cs[i;6])
+          R⍪←cs[i;1 6],1
+          :For j :In ↓sc
+              R⍪←j[4 1],2
+          :EndFor
       :EndFor
-     
      
     ∇
 
@@ -92,7 +125,7 @@
       ⎕←'Save that data!'
      
      
-      R←Execute'green'#._.jBox.Notice(⊂(New _.Icon'fa-check'),' Settings saved.')
+      R←Execute'green'#._.jBox.Notice(⊂(New _.Icon'fa-check')' Settings saved.')
     ∇
 
     ∇ R←CallbackFn
@@ -101,14 +134,34 @@
       :Case 'rowSelected'
           i←1+2⊃⎕VFI'0'Get'ridx'  ⍝ i = index of portfolio
           pf←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioSummary'((SessionGet'UID'),ClientSummary[i;6])
-⍝ pf grid is resized after refreshContent to correct number of rows, but does not show content :(
-⍝ https://help.syncfusion.com/js/api/ejgrid#methods:datasource
-          R←Execute('var gobj = $("#portfoliogrid").data("ejGrid");gobj.dataSource(',(#.JSON.fromAPL pf),');gobj.refreshContent(true);')
+          tab←#.JSON.fromTable'C1' 'C2' 'C3' 'C4' 'C5' 'C6'⍪pf
+          tab.C3←1 #._JSS.JSDate¨tab.C3⍝-⊂7↑0 1    ⍝ JS-month has ⎕IO=0!
+          tab2←1 0 1 #.JSON.fromAPL tab
+          R←Execute('$("#currPf").show();var gobj = $("#portfoliogrid").data("ejGrid");gobj.dataSource(',tab2,');')
       :Else
           ⎕←'No handler for event ',_event
           ∘∘∘
       :EndSelect
     ∇
+    ∇ R←UpdateChart;data
+      :Access public
+      sc←CatchAPIErrors(SessionGet'APIref').CallAPI('GetScenario'(⊃(//)⎕VFI _value))
+      var←opts←''
+      scData←3⊃sc
+      t←1↓⍳2⊃⍴scData
+      scData[1;t]←{⎕ML←1 ⋄ ∊' '~⍨⍕⍵,¨'-'}¨scData[1;t]
+      :For i :In 1↓⍳1↑⍴scData
+     
+          var,←'var chartData',(⍕i),'=',({#.JSON.(fromAPL fromTable'xy'⍪⍵)}⍉0 1↓scData[1,i;]),';'
+     
+          opts,←ScriptFollows #.Strings.subst('%i%'(⍕i))
+⍝    series: [{type: 'line' , dataSource: chartData%i% , xName: "x", yName: "y",}],
+      :EndFor
+     
+      R←var,'$("#chartContainer").ejChart({',opts,'});'
+      R←Execute R
+    ∇
+
 
 
     ∇ R←PFTitles pf

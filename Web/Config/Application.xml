@@ -1,5 +1,5 @@
 ﻿<Application>
-	  <!-- might be used to configure pswd-security -->
+	  <!-- might (but is not yet) be used to configure pswd-security -->
     <PswdSec>6/1/1/1/0</PswdSec>        <!-- Password-Security: min. length/uppercase/lowercase/digits/special-chars -->
     <SpecialChars>,;.:-_!#+*=(){}[]</SpecialChars>  <!-- Special characters for passwords -->
 

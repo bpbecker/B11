@@ -30,7 +30,8 @@
           ig←'#login'form.Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-tag' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Luserid' 'Lpswd'
-          ig.Inputs[1 2].SetAttr'placeholder="User ID"'('placeholder="Password"' 'type="Password"')
+          ig.Inputs[1 2].SetAttr'placeholder="User ID"'('placeholder="Password"' 'type="Password"')      
+          
           'Hpswd'form.Add _.Input'hidden' 'Hpswd'
           'Lsalt'form.Add _.Input'hidden' 'Lsalt'
           'Tsalt'form.Add _.Input'hidden' 'Tsalt'
@@ -38,7 +39,7 @@
           ig.Inputs[2].On'blur' 0 '' 'HashPass()'
      
         ⍝ Submit-Button
-          sbtn←'class="primBtn" id="loginBtn"'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Login')
+          sbtn←'class="primBtn" id="loginBtn" 'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Login')
           sbtn.On'click' 'Login'(('uid' 'val' '#Luserid')('hpwd' 'val' '#Hpswd')('tslt' 'val' '#Tsalt'))
      
           Add _.Script ScriptFollows
@@ -99,7 +100,7 @@
       :If 0=⊃ret
           _Request.Session.(UID tUID)←3⊃ret
           _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
-          R←Execute('location.assign("index");')
+         R←Execute('location.assign("index");')
       :Else
           R←Execute _.jBox.Modal New _.Panel(2⊃ret)'error'
       :EndIf
@@ -122,4 +123,3 @@
     ∇
 
 :endclass
-
