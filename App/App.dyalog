@@ -248,7 +248,7 @@
      Done:⎕FHOLD ⍬
       :EndHold
       :If ~0∊⍴pdir
-          data←pdir[;4 5],({¯1+≢⍵}⌸pdir[;1],sdir[;2]),#.utils.fmtTs¨pdir[;6 7]
+          data←pdir[;4 5],({¯1+≢⍵}⌸pdir[;1],sdir[;2]),pdir[;6 7]
           data,←pdir[;1 3]  ⍝ MBaas: added pid & details
       :EndIf
     ∇
@@ -264,7 +264,7 @@
               :If ∨/mask←mask∧pdir[;1]=pid
                   ind←mask/⍳⍴mask
                   :If ~0∊⍴port←getPortfolio pdir[ind;3]
-                      data←port[;1],(CommodityName port[;1]),(#.utils.fmtDate¨port[;4]),{⍵[;1],#.utils.fmtCurrency¨⍵[;2 3]}{⍵,×/⍵}port[;2 3]
+                      data←port[;1],(CommodityName port[;1]),port[;4],{⍵,×/⍵}port[;2 3]
                   :EndIf
               :Else
                   (rc msg data)←4 'portfolio not found'pid
