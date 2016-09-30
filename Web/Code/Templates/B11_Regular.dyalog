@@ -22,7 +22,7 @@
       :AndIf ~IfInstance'login'            ⍝ and we're not loading the login-Page
       :AndIf 0=2⊃⎕VFI⍕'0'SessionGet'UID'   ⍝ and do not yet have UID (Session-Variable "UID" will hold a (numeric) UserId (or 0 if user if not logged in))
           _Request.Session.UID←z←0
-          _Request.Redirect'/login.mipage' ⍝ then redirect to login
+          307 _Request.Redirect'/login.mipage' ⍝ then redirect to login
       :EndIf
      
     ∇

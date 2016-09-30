@@ -3,11 +3,6 @@
     ∇ Compose;R;MyTabs
       :Access public
       RequiresLogin←0
-⍝ experimental, but does not seem to affect Login-behaviour
-(Add _.meta).SetAttr 'http-equiv=”Pragma” content=”no-cache”>'
-(Add _.meta).SetAttr 'http-equiv=”Expires” content=”-1">'
-(Add _.meta).SetAttr 'http-equiv=”CACHE-CONTROL” content=”NO-CACHE”>'
-
       Use'jsSHA'
       title←'B11 - Login'
       '#logo'Add _.div(('B11'New _.span'<b>B11</b>')('#slogan'New _.p'More Bang for the Buck'))
@@ -43,7 +38,7 @@
           ig.Inputs[2].On'blur' 0 '' 'HashPass()'
      
         ⍝ Submit-Button
-          sbtn←'class="primBtn" id="loginBtn" type="submit"'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Login')
+          sbtn←'class="primBtn" id="loginBtn"'R.Add _.Button(⊂(New _.Icon'fa-sign-in'),' Login')
           sbtn.On'click' 'Login'(('uid' 'val' '#Luserid')('hpwd' 'val' '#Hpswd')('tslt' 'val' '#Tsalt'))
      
           Add _.Script ScriptFollows
@@ -102,10 +97,9 @@
       Tsalt←Get'tslt'
       ret←(SessionGet'APIref').CallAPI('Login2'(Luserid Hpswd Tsalt))
       :If 0=⊃ret
-          newUrl←(_Request.GetHeader'origin'),'/index'  ⍝ Host
           _Request.Session.(UID tUID)←3⊃ret
           _Request.Session.showMsg←,⊂2('Welcome back, ',_Request.Session.tUID)
-         R←Execute('location.assign("index");')
+          R←Execute('location.assign("index");')
       :Else
           R←Execute _.jBox.Modal New _.Panel(2⊃ret)'error'
       :EndIf
@@ -128,3 +122,4 @@
     ∇
 
 :endclass
+
