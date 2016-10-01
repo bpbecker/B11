@@ -6,7 +6,9 @@
 ⍝       the application run in multiple threads in the workspace (:Hold)
 ⍝       or across multiple APL processes (⎕FHOLD)
 
+⍝∇:require =/Test.dyalog
 
+    :include #.Test
     :section Initialization and Documentation
 
     DataDir←0
@@ -115,7 +117,7 @@
           :If ∨/mask←dir[;1]=pid
               DeletePortfolioScenarios pid
               ⍬ putPortfolio mask/dir[;3]
-              putPortfolioDir (~mask)⌿dir
+              putPortfolioDir dir⌿~mask
           :Else
               (rc msg)←¯2 'portfolio not found'
           :EndIf
@@ -516,7 +518,6 @@
       r←getCommodityDir{(⍺[;2],⊂'??? Not found')[⍺[;1]⍳⍵]}eis cmid
     ∇
 
-
     ∇ r←PortfolioName pid
       :Access public shared
       r←getPortfolioDir{(⍺[;4],⊂'??? Not found')[⍺[;1]⍳⍵]}pid
@@ -543,22 +544,33 @@
 
     :section Misc
 
-    ∇ port←RandomPortfolio;cdir;n;inds;r;qty;dates;prices
-      ⍝ generate a random portfolio
+    IPYN←{⍞←⍵ ⋄ 'Yy'∊⍨¯1↑(⍴⍵)↓⍞}
+
+    ∇ ResetDataBase
       :Access public shared
-      cdir←getCommodityDir
-      n←⍬⍴⍴cdir
-      inds←(r←?n)?n
-      qty←100×?r⍴20
-      dates←#.utils.IDNToDate(⌊#.utils.DateToIDN ⎕TS)-?(⍴inds)⍴365
-      prices←2 #.utils.round{⍵×1+¯0.2+0.4×?(⍴,⍵)⍴0}cdir[inds;3] ⍝ random price +/- 20% "current"
-      port←(cdir[inds;1],prices,[1.1]qty)[;1 3 2],dates
+      ⎕←'This function will wipe out all data in the database...'
+      :If IPYN'Proceed? '
+          :Hold 'client' 'portfolio' 'scenario'
+              ⎕FHOLD clientTn,portfolioTn,scenarioTn
+              putClientDir 0⌿getClientDir ⍝ wipe out directory
+              0 ⎕FREPLACE clientTn,3      ⍝ reset last client number
+     
+              putPortfolioDir 0⌿getPortfolioDir ⍝ wipe out directory
+              0 ⎕FREPLACE portfolioTn,3         ⍝ reset last portfolio number
+              ⎕FDROP portfolioTn,5+-/2↑⎕FSIZE portfolioTn ⍝ drop off data components
+     
+              putScenarioDir 0⌿getScenarioDir ⍝ wipe out directory
+              0 ⎕FREPLACE scenarioTn,3        ⍝ reset last portfolio number
+              ⎕FDROP scenarioTn,5+-/2↑⎕FSIZE scenarioTn ⍝ drop off data components
+     
+     Done:    ⎕FHOLD ⍬
+          :EndHold
+      :EndIf
     ∇
 
     ∇ CleanupFiles;mask;comps
       ⍝ Cleanup orphaned data during testing
       :Access public shared
-     
       :Hold 'client' 'portfolio' 'scenario'
           ⎕FHOLD clientTn,portfolioTn,scenarioTn
           :If ~∧/mask←getPortfolioDir[;2]∊getClientDir[;1] ⍝ orphaned portfolios
@@ -578,10 +590,6 @@
     ∇
 
     eis←{(,∘⊂)⍣((326∊⎕DR ⍵)<2>|≡⍵)⊢⍵} ⍝ Enclose if simple
-
-    :endsection
-
-    :section Unit_Tests
 
     :endsection
 
