@@ -191,18 +191,21 @@
       :EndHold
     ∇
 
-    ∇ (rc msg pid)←UpdatePortfolio(pid pname port);dir;ind
+    ∇ (rc msg pid)←UpdatePortfolio arg;dir;ind;port;pname
       :Access public shared
       (rc msg)←0 ''
+      (pid pname port)←3↑arg
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
           dir←getPortfolioDir
           :If 0≠ind←dir[;1]#.utils.iotaz pid
               DeletePortfolioScenarios pid
-              port putPortfolio dir[ind;3]
               dir[ind;4]←⊂pname
-              dir[ind;5]←⊃⍴port
-              dir[ind;7]←⊂⎕TS
+              :If 2<1↑⍴arg ⍝ port is optional - if it is not there, we will only update the name
+                  port putPortfolio dir[ind;3]
+                  dir[ind;5]←⊃⍴port
+              :EndIf
+              dir[ind;7]←⊂⎕TS       ⍝ updating the name will also update the timestamp
               putPortfolioDir dir
           :Else
               (rc msg)←4 'portfolio not found'
