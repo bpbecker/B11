@@ -66,7 +66,6 @@
      
       hd←New _.noscript
       hd.Add _.div'Limited functionality w/o JavaScript!' 'class="class=col-lg-10 noscript"'
-      ⍝ hd,←'#title'New _.h1 (5↓server.Config.Name)
       hd,←H1title←'#title'New _.h1
       ⍝ Sorry, hardcoding name here so that it can be made responsive
       '.show-md'H1title.Add _.span'B11: '
