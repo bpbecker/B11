@@ -115,7 +115,7 @@
           :If ∨/mask←dir[;1]=pid
               DeletePortfolioScenarios pid
               ⍬ putPortfolio mask/dir[;3]
-              putPortfolioDir dir⌿~mask
+              putPortfolioDir (~mask)⌿dir
           :Else
               (rc msg)←¯2 'portfolio not found'
           :EndIf
