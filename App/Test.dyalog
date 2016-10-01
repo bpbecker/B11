@@ -109,7 +109,7 @@
       n←⍬⍴⍴cdir
       inds←(r←?n)?n
       qty←100×?r⍴20
-      dates←#.utils.IDNToDate(⌊#.utils.DateToIDN ⎕TS)-t←?(⍴inds)⍴365
+      dates←eis #.utils.IDNToDate(⌊#.utils.DateToIDN ⎕TS)-t←?(⍴inds)⍴365
       prices←2 #.utils.round{⍵×1+¯0.2+0.4×?(⍴,⍵)⍴0}cdir[inds;3] ⍝ random price +/- 20% "current"
       port←(cdir[inds;1],prices,[1.1]qty)[;1 3 2],dates
     ∇
@@ -120,7 +120,7 @@
 
     ∇ params←MakeScenarioParameters;n
       :Access public shared
-      n←⍬⍴⍴params←⍪#.utils.IDNToDate(⌊#.utils.DateToIDN ⎕TS)++\7×?(?10)⍴5 ⍝ up to 10 time period up to 5 weeks each
+      n←⍬⍴⍴params←⍪eis#.utils.IDNToDate(⌊#.utils.DateToIDN ⎕TS)++\7×?(?10)⍴5 ⍝ up to 10 time period up to 5 weeks each
       params,←¯2+?n⍴5 ⍝ outlook
       params,←?n⍴5    ⍝ volatility
     ∇
