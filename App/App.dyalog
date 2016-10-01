@@ -1,4 +1,4 @@
-﻿:Class App
+﻿:Class App  
     (⎕IO ⎕ML ⎕WX)←1 1 3
 
 ⍝ Note: Holding is being done both with ⎕FHOLD and :Hold
@@ -543,51 +543,6 @@
     :endsection
 
     :section Misc
-
-    IPYN←{⍞←⍵ ⋄ 'Yy'∊⍨¯1↑(⍴⍵)↓⍞}
-
-    ∇ ResetDataBase
-      :Access public shared
-      ⎕←'This function will wipe out all data in the database...'
-      :If IPYN'Proceed? '
-          :Hold 'client' 'portfolio' 'scenario'
-              ⎕FHOLD clientTn,portfolioTn,scenarioTn
-              putClientDir 0⌿getClientDir ⍝ wipe out directory
-              0 ⎕FREPLACE clientTn,3      ⍝ reset last client number
-     
-              putPortfolioDir 0⌿getPortfolioDir ⍝ wipe out directory
-              0 ⎕FREPLACE portfolioTn,3         ⍝ reset last portfolio number
-              ⎕FDROP portfolioTn,5+-/2↑⎕FSIZE portfolioTn ⍝ drop off data components
-     
-              putScenarioDir 0⌿getScenarioDir ⍝ wipe out directory
-              0 ⎕FREPLACE scenarioTn,3        ⍝ reset last portfolio number
-              ⎕FDROP scenarioTn,5+-/2↑⎕FSIZE scenarioTn ⍝ drop off data components
-     
-     Done:    ⎕FHOLD ⍬
-          :EndHold
-      :EndIf
-    ∇
-
-    ∇ CleanupFiles;mask;comps
-      ⍝ Cleanup orphaned data during testing
-      :Access public shared
-      :Hold 'client' 'portfolio' 'scenario'
-          ⎕FHOLD clientTn,portfolioTn,scenarioTn
-          :If ~∧/mask←getPortfolioDir[;2]∊getClientDir[;1] ⍝ orphaned portfolios
-              putPortfolioDir mask⌿getPortfolioDir
-              :If ~0∊⍴comps←(5↓⍳¯1+2⊃⎕FSIZE portfolioTn)~getPortfolioDir[;3]
-                  ''∘putPortfolio¨comps
-              :EndIf
-          :EndIf
-          :If ~∧/mask←getScenarioDir[;2]∊getPortfolioDir[;1] ⍝ orphaned scenarios
-              putScenarioDir mask⌿getScenarioDir
-              :If ~0∊⍴comps←(5↓⍳¯1+2⊃⎕FSIZE scenarioTn)~getScenarioDir[;3]∘.+0 1
-                  ''∘putScenarioParameters¨comps
-              :EndIf
-          :EndIf
-     Done:⎕FHOLD ⍬
-      :EndHold
-    ∇
 
     eis←{(,∘⊂)⍣((326∊⎕DR ⍵)<2>|≡⍵)⊢⍵} ⍝ Enclose if simple
 

@@ -11,7 +11,7 @@
     hash←{#.Crypt.(HASH_SHA256 Hash ⍵)}
     salt←{#.Strings.stringToHex #.Crypt.Random ⍵}
     DateToIDN←{(2 ⎕NQ'.' 'DateToIDN'(3↑⍵))+(24 60 60 1000⊥4↑3↓⍵)÷86400000}
-    IDNToDate←{1<⍴,⍵:∇¨⍵ ⋄ (3↑2 ⎕NQ'.' 'IDNToDate'(⌊⍵)),⌊0.5+24 60 60 1000⊤86400000×1|⍵}
+    IDNToDate←{1<⍴,⍵:∇¨⍵ ⋄ {(3↑2 ⎕NQ'.' 'IDNToDate'(⌊⍵)),⌊0.5+24 60 60 1000⊤86400000×1|⍵}⍬⍴⍵}
     round←{⍺←2 ⋄ (10*-⍺)×⌊.5+⍵×10*⍺}
     genKey←{(⎕D,6↑⎕A)[?⍵⍴16]}
 :EndNamespace
