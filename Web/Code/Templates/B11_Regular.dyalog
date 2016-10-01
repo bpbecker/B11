@@ -27,7 +27,7 @@
      
     ∇
 
-    ∇ {r}←Wrap;server;hd;H1title
+    ∇ {r}←Wrap;server;hd;H1title;opts
       :Access Public
       server←_Request.Server
       :If '###'≡'###'SessionGet'showMsg'
@@ -82,7 +82,9 @@
           :If 0>⊃1⊃_Request.Session.showMsg   ⍝ there is an errormsg (or a warning) to show!
               OnLoad,←_.jBox.Modal(New _.Panel((,2⊃t)(t[1]⊃'warn' 'error')))
           :ElseIf 0<⊃t←1⊃_Request.Session.showMsg
-              OnLoad,←('blue' 'green')[1⊃t]_.jBox.Notice((#.HtmlElement.New _.Icon(t[1]⊃'fa-info-circle' 'fa-check')),2⊃t)
+              ⍝OnLoad,←('blue' 'green')[1⊃t]_.jBox.Notice((#.HtmlElement.New _.Icon(t[1]⊃'fa-info-circle' 'fa-check')),2⊃t)
+              opts←⎕ns'' ⋄ opts.color←('blue' 'green')[1⊃t] ⋄ opts.position←'⍎{x: "right", y: "top"}'
+              OnLoad,←opts _.jBox.Notice((#.HtmlElement.New _.Icon(t[1]⊃'fa-info-circle' 'fa-check')),2⊃t)
           :EndIf
           _Request.Session.showMsg←1↓_Request.Session.showMsg
       :EndWhile
