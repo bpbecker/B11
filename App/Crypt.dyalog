@@ -370,9 +370,9 @@
           AddSep←{⍵,dirsep↓⍨dirsep=¯1↑⍵}
           FileExists←{0::0 ⋄ 1⊣⎕NUNTIE ⍵ ⎕NTIE 0}
      
-          dir←(('aix' 'lin' 'arm' 'win'⍳⊂⎕IO⊃platform)⊃'aix' 'linux' 'pi' 'windows'),dirsep
+          dir←('CryptDlls',dirsep,('aix' 'lin' 'arm' 'win'⍳⊂⎕IO⊃platform)⊃'aix' 'linux' 'pi' 'windows'),dirsep
      
-          scriptpath←{0::'' ⋄ ExtractPath ⎕THIS⍎'SALT_DATA.SourceFile'}''
+          scriptpath←{0::'' ⋄ AddSep ExtractPath ⍵⍎'SALT_Data.SourceFile'}⎕THIS
      
           :If 'win'≡⎕IO⊃platform
               wspath←AddSep{⍵{⍵{⎕EX ⍺:⍵}(ExtractPath↑↑/2↑_GetFullPathName ⎕WSID 1024 1024 0),'\',⍺}'_GetFullPathName'⎕NA'I KERNEL32|GetFullPathName* <0T I >T[] >I'}''

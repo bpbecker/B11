@@ -11,15 +11,18 @@
     ⍝ returns user name, userid, email, password, salt for hashing password, hashed password
       salt←#.utils.salt 32
       pwd←name,'password'
-      r←name(name,'userid')(name,'@',name,'co.com')pwd salt(#.Strings.StringToHex #.utils.hash salt,pwd)
+      r←name(name,'userid')(name,'@',name,'co.com')pwd salt(#.Strings.stringToHex #.utils.hash salt,pwd)
     ∇
 
-    ∇ ClientTests;hpwd;salt;pwd;email;uid;name
+    ∇ ClientTests;hpwd;salt;pwd;email;uid;name;t
+      :Access public shared
       (name uid email pwd salt hpwd)←GenerateClient'bob'
-      'empty userid'TestIf (1 'empty userid')≡2↑AddClient(name email''hpwd salt)
-      'empty email'TestIf (2 'empty email')≡2↑AddClient(name''uid hpwd salt)
-      'empty name'TestIf (3 'empty name')≡2↑AddClient(''email uid hpwd salt)
-      'add new client'TestIf 0=AddClient(name email uid hpwd salt)
+      'empty userid'TestIf(1 'empty userid')≡2↑AddClient(name email''hpwd salt)
+      'empty email'TestIf(2 'empty email')≡2↑AddClient(name''uid hpwd salt)
+      'empty name'TestIf(3 'empty name')≡2↑AddClient(''email uid hpwd salt)
+      'add client "bob"'TestIf 0=⊃t←AddClient(name email uid hpwd salt)
+      'duplicate uid'TestIf(1 'userid in use')≡2↑AddClient(name'other@other.com'uid hpwd salt)
+      'duplicate email'TestIf(2 'email in use')≡2↑AddClient(name email 'other' hpwd salt)
     ∇
 
     :EndSection
