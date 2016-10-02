@@ -34,7 +34,7 @@
               pfs←{CatchAPIErrors(SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))}¨ClientSummary[;6]
               ListPortfolios←ClientSummary[;6 1 5 2 3]
           :EndIf
-             
+     
           '#h2pfl'R.Add _.h2'Your portfolios'
      
           pfColumns←⎕NS¨5⍴⊂''
@@ -98,7 +98,8 @@
           'allowSorting'pfItemsGrid.Set _true
           'allowFiltering'pfItemsGrid.Set _true
           'filterSettings'pfItemsGrid.Set'⍎{filterType: "excel"}'
-          'endEdit'pfItemsGrid.Set'⍎function(args){console.log(JSON.stringify(args.model));}'
+          pfItemsGrid.On('endEdit endDelete endAdd')'UpdatePortfolioDetails'('dataSource' 'model' 'dataSource')
+⍝          'endEdit'pfItemsGrid.Set'⍎function(args){console.log(JSON.stringify(args.model.dataSource));}'
      
      
       :Case 2
@@ -158,7 +159,7 @@
       :Select _event
       :Case 'rowSelected'
           ridx←Get'ridx'
-          pfItemsGridData←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioSummary'((SessionGet'UID')(2⊃⎕VFI ridx.id))
+          pfItemsGridData←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioSummary'((SessionGet'UID')ridx.id)
           pfItemsGridData[;1]←Commodities[Commodities[;1]⍳pfItemsGridData[;1];4] ⋄ pfItemsGridData←1 0 1 1 1 1/pfItemsGridData
           tab←#.JSON.fromTable'title' 'purch' 'count' 'price' 'val'⍪pfItemsGridData
           :If 0<1↑⍴pfItemsGridData
@@ -228,7 +229,10 @@
       :EndSelect
     ∇
 
-
+    ∇ UpdatePortfolioDetails
+      :Access public
+      ∘∘∘
+    ∇
 
 
     ∇ R←UpdateChart;data
