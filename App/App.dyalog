@@ -8,7 +8,7 @@
 
 ⍝∇:require =/Test.dyalog
 
-    :include #.Test
+    :include Test
     :section Initialization and Documentation
 
     DataDir←0
@@ -67,7 +67,7 @@
           dir←getPortfolioDir
           pid←nextPortfolioId
           ptr←nextPortfolioSlot dir
-          putPortfolioDir dir⍪pid cid ptr pname 0 ⎕TS ⎕TS
+          putPortfolioDir dir⍪pid cid ptr pname (⍬⍴⍴port) ⎕TS ⎕TS
           port putPortfolio ptr
      Done:⎕FHOLD ⍬
       :EndHold

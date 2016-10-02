@@ -2,7 +2,7 @@
 ⍝∇:require =\..\..\APP\Files.dyalog
     ∇ R←CallAPI arg;exec;id;⎕TRAP
       ⎕TRAP←0 'S'  ⍝ disable all trapping in outer fns...
-      ⎕SE.Dyalog.Utils.disp'CallAPI ⍵='arg
+    ⍝  ⎕SE.Dyalog.Utils.disp'CallAPI ⍵='arg
       (id arg)←arg
       exec←((3=⍴⍴arg)/'(3⊃arg)'),('iAPI.',1⊃arg),(1<⍴arg)/' 2⊃arg'
       :Trap Trapping/0
@@ -12,7 +12,7 @@
       :Else
           R←1(⎕DM)
       :EndTrap
-      ⎕SE.Dyalog.Utils.disp'CallAPI R='R
+    ⍝  ⎕SE.Dyalog.Utils.disp'CallAPI R='R
     ∇
 
 
@@ -23,9 +23,9 @@
           :If 2=⎕NC'#.Boot.AppRoot' ⋄ #.API.⎕CY #.Boot.AppRoot,'API-Link/API-Link' ⋄ :EndIf    ⍝ only needed in "pure" inSitu, APLProcess-inSitu has it alrdy (I just did not want to add a 3d type...)
                 ⍝ Set the scene for the API by getting namespaces it needs
           :For ns :In {⎕ML←0 ⋄ 1↓¨(1↓⍵=⍵[1])⊂1↓⍵}',',APIRequires
-	          :if 0=#.⎕nc ns
-	              ⎕SE.SALT.Load APIHomeDir,ns,' -target=#'
-	          :endif
+              :if 0=#.⎕nc ns
+                  ⎕SE.SALT.Load APIHomeDir,ns,' -target=#'
+              :endif
           :EndFor
      
         ⍝ Load configured API either from DWS or .dyalog-file (should do .dyapp, too - probably... [*Question*])

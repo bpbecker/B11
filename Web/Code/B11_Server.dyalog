@@ -6,7 +6,7 @@
       :Access public  Override
       #.Boot.ms.Config.Application←#.Boot.ReadConfiguration'Application'
       InitAPIServerCfg #.Boot.ms.Config.Application
-      #.Crypt.Init Config.AppRoot,'/Code/CryptDlls/'
+      #.Crypt.Init ''
     ∇
 
     ∇ InitAPIServerCfg ref;t;ns1

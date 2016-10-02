@@ -17,13 +17,13 @@
       ClientSummary←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
       Commodities←CatchAPIErrors(SessionGet'APIref').CallAPI('GetCommodities')  ⍝ [;1]=id, [;2]=name, [;3]=price
       Commodities,←{(2⊃⍵),' (',(1⊃⍵),')'}¨↓Commodities   ⍝ [;4] "nice" title combining id & name
-      Add _.Script ('var commtab=',(#.JSON.{fromAPL 'code' 'name' 'price' 'title'fromTable ⍵}Commodities),';')
-      
+      Add _.Script('commtab'_JSS.JSData'code' 'name' 'price' 'title'⍪Commodities)
+      Add _.Script('commodities'_JSS.JSData('text' 'abbr')⍪Commodities[;4 1])
       '#maintabs'Add _.ejTab('<i class="fa fa-table"></i> Portfolios' '<i class="fa fa-magic"></i> Scenarios' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
     ∇
 
 
-    ∇ R←MakeTab i;pfl_titles;pflgrid;tbi;pfItemsGridData;pfc_titles;pfItemsGrid;pfsc;pflist;pfs;ig;sbtn
+    ∇ R←MakeTab i;pfl_titles;pflgrid;tbi;pfItemsGridData;pfc_titles;pfItemsGrid;pfsc;pflist;pfs;ig;sbtn;pfColumns;tab;tab2;cpf
       R←'.container'New _.div
       :Select i
       :Case 1
@@ -34,9 +34,8 @@
               pfs←{CatchAPIErrors(SessionGet'APIref').CallAPI('PortfolioSummary'((SessionGet'UID')⍵))}¨ClientSummary[;6]
               ListPortfolios←ClientSummary[;6 1 5 2 3]
           :EndIf
-     
+             
           '#h2pfl'R.Add _.h2'Your portfolios'
-     
      
           pfColumns←⎕NS¨5⍴⊂''
           pfColumns.field←'id' 'name' 'lupd' 'cntComm' 'cntScen'
@@ -46,7 +45,7 @@
           pfColumns[1].(isIdentity isPrimaryKey visible)←_true _true _false
      
           tab←#.JSON.fromTable'id' 'name' 'lupd' 'cntComm' 'cntScen'⍪ListPortfolios
-          tab.C2←1 #._JSS.JSDate¨tab.C2
+          tab.lupd←1 #._JSS.JSDate¨tab.lupd
           tab2←1 0 1 #.JSON.fromAPL tab
      
           pflgrid←'#ListPortfolios'R.Add _.ejGrid((0 5⍴0)pfColumns)
@@ -75,32 +74,37 @@
 ⍝       </tr>
 ⍝   </table>
      
-
           cpf←'#currPf' 'style=display:none'R.Add _.div
-          '#h2pfc'cpf.Add _.h2('Listing of portfolio ' ('#pfname'New _.span))
+          '#h2pfc'cpf.Add _.h2('Listing of portfolio '('#pfname'New _.span))
      
           pfItemsGridData←0 5⍴' '
           pfColumns←⎕NS¨5⍴⊂''
-          pfColumns.field←'title' 'purch' 'count' 'price' 'val' 
+          pfColumns.field←'title' 'purch' 'count' 'price' 'val'
           pfColumns.headerText←'Name (ID)' 'Purchase Date' 'Shares' 'Price' 'Value'
-          pfColumns.textAlign←'Left'  'Right' 'Right' 'Right' 'Right'
+          pfColumns.textAlign←'Left' 'Right' 'Right' 'Right' 'Right'
           pfColumns.width←↓'I2,<%>'⎕FMT 40 15 15 15 15    ⍝ Brian: that seems to have no effect?
-          pfColumns[1].(editType dataSource isPrimaryKey)←'⍎ej.Grid.EditingType.Dropdown' '⍎commodities'  _true
-          pfColumns[2].(editType format)←'⍎ej.Grid.EditingType.DateTimePicker' '{0:yy/MM/dd}'
-          pfColumns[3 4 5 ].editType←⊂'⍎ej.Grid.EditingType.Numeric'
-          pfColumns[3 4 5 ].format←⊂'{0:c}'
+          pfColumns[1].(editType dataSource)←'⍎ej.Grid.EditingType.Dropdown' '⍎commodities'
+ ⍝         pfColumns[1].editParams←'⍎{fields:{text:"text", value:"abbr"}}'
+          pfColumns[2].(editType format)←'⍎ej.Grid.EditingType.DatePicker' '{0:yy/MM/dd}'
+          pfColumns[4].editParams←'⍎{decimalPlaces:2}'
+          pfColumns[4 5].format←⊂'{0:C2}'
+          pfColumns[5].allowEditing←_false
+          pfColumns[3].validationRules←'⍎{required:true,number:true,min:1}'
+          pfColumns[4].validationRules←'⍎{required:true,number:true,min:.01}'
      
           pfItemsGrid←'#pfItemsGrid'cpf.Add _.ejGrid(pfItemsGridData pfColumns)
           'toolbarSettings'pfItemsGrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
-          'editSettings'pfItemsGrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true}' ⍝ ,editMode: ej.Grid.EditMode.DialogTemplate, dialogEditorTemplateID: "#pfctemplate" , formPosition: "TopRight" }'
+          'editSettings.(allowEditing allowAdding allowDeleting)'pfItemsGrid.Set _true
           'allowSorting'pfItemsGrid.Set _true
           'allowFiltering'pfItemsGrid.Set _true
           'filterSettings'pfItemsGrid.Set'⍎{filterType: "excel"}'
-
+          'endEdit'pfItemsGrid.Set'⍎function(args){console.log(JSON.stringify(args.model));}'
+     
      
       :Case 2
           pfsc←BuildListPfSc ClientSummary
-          ('#pfselSel'R.Add _.ChainedSelect pfsc).On'change' 'UpdateChart'
+  ⍝BPB - this value errors on ChainedSelect
+  ⍝      ('#pfselSel'R.Add _.ChainedSelect pfsc).On'change' 'UpdateChart'
      
           ch←'#chartContainer'R.Add _.div
      
@@ -156,13 +160,13 @@
           ridx←Get'ridx'
           pfItemsGridData←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioSummary'((SessionGet'UID')(2⊃⎕VFI ridx.id))
           pfItemsGridData[;1]←Commodities[Commodities[;1]⍳pfItemsGridData[;1];4] ⋄ pfItemsGridData←1 0 1 1 1 1/pfItemsGridData
-          tab←#.JSON.fromTable'title' 'purch' 'count' 'price' 'val' ⍪pfItemsGridData
+          tab←#.JSON.fromTable'title' 'purch' 'count' 'price' 'val'⍪pfItemsGridData
           :If 0<1↑⍴pfItemsGridData
               tab.purch←1 #._JSS.JSDate¨tab.purch
           :EndIf
           tab2←1 0 1 #.JSON.fromAPL tab
           R←Execute('$("#currPf").show();var gobj = $("#pfItemsGrid").data("ejGrid");gobj.dataSource(',tab2,');')
-          R,←'#pfname' Replace ridx.name
+          R,←'#pfname'Replace ridx.name
      
       :Case 'endAdd'
           name←_PageData.editcell.name
