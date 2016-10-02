@@ -11,7 +11,7 @@
      
       MyTabs←'#loginTabs'R.Add _.ejTab
       MyTabs.Sections←MakeTab¨⍳2
-      MyTabs.Titles←((New _.Icon'fa-sign-in')' Login')((New _.Icon'fa-user-plus')' Sign Up')
+      MyTabs.Titles←((_.Icon'fa-sign-in')' Login')((_.Icon'fa-user-plus')' Sign Up')
       MyTabs.Theme←'0'
     ∇
 
@@ -29,6 +29,8 @@
           form←R.Add _.Form
           ig←'#login'form.Add _.InputGrid
           ig.Labels←{New _.Icon ⍵}¨'fa-tag' 'fa-lock'
+          ⍝ Brian: Render can not copy with the variant below - should it or am I abusing it? ;-)
+          ⍝ig.Labels←{ _.Icon ⍵}¨'fa-tag' 'fa-lock'
           ig.Inputs←{⍵ New _.EditField}¨'Luserid' 'Lpswd'
           ig.Inputs[1 2].SetAttr'placeholder="User ID"'('placeholder="Password"' 'type="Password"')      
           

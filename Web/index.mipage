@@ -1,4 +1,21 @@
-﻿:class index : B11_Regular
+﻿⍝ Issues:
+⍝ - Portfolios/Details: double-clicking an item (or switching it into edit-mode) looses that items
+⍝   current value in the 1st columns!
+⍝ - pfDetailsGrid: the "Delete"-Icon seems to always delete the 1st record, not the currently selected one
+⍝ - "Settings"-Tab: Position of jBox (-> MB)
+⍝ - "Scenarios"-Tab: selecting a scenario created the following error
+⍝   ej.web.all.min.js:10 Uncaught TypeError: Failed to execute 'replaceChild' on 'Node': parameter 1 is not of type 'Node'.
+⍝   need to check again after some sleep...!
+⍝
+⍝ Next Steps:
+⍝ + Display results of scenario: Commodity, Start/End-Value and perhaps some calculated % and totals
+⍝ + Run a scenario
+⍝ + Charts
+⍝ + Improve Layout with StackPanel.Horizontal←1
+⍝ + Clean up code (indent!), localize variables, harmonize names, remove un-executed functions, :cases etc.
+
+
+:class index : B11_Regular
 
     :field public t3settings
     :field public name
@@ -7,6 +24,9 @@
     :field public Commodities
     :field public ListPortfolios
     :field public pfItemsGridData
+    :field public CurrPFid
+    :field public CurrPFname
+    :field public CurrPF
 
     Index←{⍵/⍳⍴⍵}  ⍝ Tool: index of 1s in boolean vector
 
@@ -18,8 +38,11 @@
       Commodities←CatchAPIErrors(SessionGet'APIref').CallAPI('GetCommodities')  ⍝ [;1]=id, [;2]=name, [;3]=price
       Commodities,←{(2⊃⍵),' (',(1⊃⍵),')'}¨↓Commodities   ⍝ [;4] "nice" title combining id & name
       Add _.Script('commtab'_JSS.JSData'code' 'name' 'price' 'title'⍪Commodities)
-      Add _.Script('commodities'_JSS.JSData('text' 'abbr')⍪Commodities[;4 1])
-      '#maintabs'Add _.ejTab('<i class="fa fa-table"></i> Portfolios' '<i class="fa fa-magic"></i> Scenarios' '<i class="fa fa-cog"></i> Settings')(MakeTab¨⍳3)
+      Add _.Script('commodities'_JSS.JSData('text' 'value')⍪Commodities[;4 1])  ⍝ SF insist on text & value-column!
+      maintabs←'#maintabs'Add _.ejTab
+      maintabs.Titles←((_.Icon'fa-table')' Portfolios')((_.Icon'fa-magic')' Scenarios')((_.Icon'fa-bar-chart')' Charts')((_.Icon'fa-cog')' Settings')
+      maintabs.Sections←MakeTab¨⍳4
+⍝      'hiddenItemIndex'maintabs.Set 1 2 ⍝ would be nice, but SF can not make them visible again (show not working in CallbackFn1)
     ∇
 
 
@@ -27,7 +50,7 @@
       R←'.container'New _.div
       :Select i
       :Case 1
-     
+          ypf←New _.div
           :If 0∊⍴ClientSummary
               ListPortfolios←0 5⍴''
           :Else
@@ -35,7 +58,7 @@
               ListPortfolios←ClientSummary[;6 1 5 2 3]
           :EndIf
      
-          '#h2pfl'R.Add _.h2'Your portfolios'
+          '#h2pfl'ypf.Add _.h2'Your portfolios'
      
           pfColumns←⎕NS¨5⍴⊂''
           pfColumns.field←'id' 'name' 'lupd' 'cntComm' 'cntScen'
@@ -48,19 +71,19 @@
           tab.lupd←1 #._JSS.JSDate¨tab.lupd
           tab2←1 0 1 #.JSON.fromAPL tab
      
-          pflgrid←'#ListPortfolios'R.Add _.ejGrid((0 5⍴0)pfColumns)
+          pflgrid←'#ListPortfolios'ypf.Add _.ejGrid((0 5⍴0)pfColumns)
      
           ⍝'dataSource'pflgrid.Set tab2
           ⍝ ↑↑ that did not do it. Would be nice if we had a way to avoid JS when assigning the data, but as I wanted to
           ⍝ have it formatted in SF, we need "new Date(...,...,...)" for the date-column
           ⍝ which seems to make it necessary to go that way:
-          R.Add _.Script(⊂'$(function(){var gobj=$("#ListPortfolios").data("ejGrid"); gobj.dataSource(',tab2,');});')
+          ypf.Add _.Script(⊂'$(function(){var gobj=$("#ListPortfolios").data("ejGrid"); gobj.dataSource(',tab2,');});')
      
           tbi←2↓∊', ej.Grid.ToolBarItems.'∘,¨'Add' 'Edit' 'Delete' 'Update' 'Cancel'
           'toolbarSettings'pflgrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
           'editSettings'pflgrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true,editMode: ej.Grid.EditMode.ExternalFormTemplate, externalFormTemplateID: "#pfltemplate" }'
           'allowSorting'pflgrid.Set _true
-          pflgrid.On'rowSelected' 'CallbackFn1'(('ridx' 'argument' 'data'))  ⍝ ⎕IO of rowindex=0
+          pflgrid.On'rowSelected' 'CallbackFn1'(('row' 'argument' 'data'))  ⍝ ⎕IO of rowindex=0
           pflgrid.On'endAdd' 'CallbackFn1'('editcell' 'argument' 'data')
           pflgrid.On'endDelete' 'CallbackFn1'('editcell' 'argument' 'data')
           pflgrid.On'endEdit' 'CallbackFn1'('editcell' 'argument' 'data')
@@ -74,17 +97,17 @@
 ⍝       </tr>
 ⍝   </table>
      
-          cpf←'#currPf' 'style=display:none'R.Add _.div
-          '#h2pfc'cpf.Add _.h2('Listing of portfolio '('#pfname'New _.span))
+          cpf←'#currPf' 'style=display:none'New _.div
+          '#h2pfc'cpf.Add _.h2('Listing of portfolio '('.pfname'New _.span))
      
           pfItemsGridData←0 5⍴' '
           pfColumns←⎕NS¨5⍴⊂''
           pfColumns.field←'title' 'purch' 'count' 'price' 'val'
-          pfColumns.headerText←'Name (ID)' 'Purchase Date' 'Shares' 'Price' 'Value'
+          pfColumns.headerText←'Name (ID)' 'Purchase Date' 'Shares' 'Purchase Price' 'Basis'
           pfColumns.textAlign←'Left' 'Right' 'Right' 'Right' 'Right'
-          pfColumns.width←↓'I2,<%>'⎕FMT 40 15 15 15 15    ⍝ Brian: that seems to have no effect?
+          pfColumns.width←↓'I2,<%>'⎕FMT 40 15 15 15 15    ⍝ that does nothing???!
           pfColumns[1].(editType dataSource)←'⍎ej.Grid.EditingType.Dropdown' '⍎commodities'
- ⍝         pfColumns[1].editParams←'⍎{fields:{text:"text", value:"abbr"}}'
+          ⍝pfColumns[1].editParams←'⍎{fields:{text:"text", value:"text"}}'
           pfColumns[2].(editType format)←'⍎ej.Grid.EditingType.DatePicker' '{0:yy/MM/dd}'
           pfColumns[4].editParams←'⍎{decimalPlaces:2}'
           pfColumns[4 5].format←⊂'{0:C2}'
@@ -95,15 +118,54 @@
           pfItemsGrid←'#pfItemsGrid'cpf.Add _.ejGrid(pfItemsGridData pfColumns)
           'toolbarSettings'pfItemsGrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
           'editSettings.(allowEditing allowAdding allowDeleting)'pfItemsGrid.Set _true
+          'allowPaging'pfItemsGrid.Set _true
           'allowSorting'pfItemsGrid.Set _true
           'allowFiltering'pfItemsGrid.Set _true
           'filterSettings'pfItemsGrid.Set'⍎{filterType: "excel"}'
           pfItemsGrid.On('endEdit endDelete endAdd')'UpdatePortfolioDetails'('dataSource' 'model' 'dataSource')
 ⍝          'endEdit'pfItemsGrid.Set'⍎function(args){console.log(JSON.stringify(args.model.dataSource));}'
      
+          (R.Add _.StackPanel(ypf cpf)).Horizontal←0 ⍝ ToDo: align both at top when Horiz=1
      
       :Case 2
-          pfsc←BuildListPfSc ClientSummary
+⍝----------- Scenarios for current pf ----------------------------------
+          R.Add _.h2('Scenarios for portfolio '('.pfname'New _.span))
+          sc1Columns←⎕NS¨3⍴⊂''
+          sc1Columns.field←'id' 'name' 'lupd'
+          sc1Columns.headerText←'ID' 'Name' 'Last Update'
+          sc1Columns.textAlign←'Left' 'Left' 'Left'
+          sc1Columns[1].(isIdentity isPrimaryKey visible)←_true _true _false
+          sc1Columns[3].format←'{0:yy/MM/dd}'
+     
+          sc1grid←'#ScenarioGrid1'R.Add _.ejGrid((0 3⍴0)sc1Columns)
+          
+          sc1grid.On'rowSelected' 'sc1CallbackFn'(('row' 'argument' 'data'))  ⍝ ⎕IO of rowindex=0
+     
+⍝------------ params of scenario -----------------------------------------
+          R.Add _.h2('Parameters of scenario '('.scname'New _.span))
+          sc2Columns←⎕NS¨3⍴⊂''
+          sc2Columns.field←'end' 'outlook' 'volatility'
+          sc2Columns.headerText←'End' 'Outlook' 'Volatility'
+          sc2Columns.textAlign←'Left' 'Left' 'Left'
+          sc2Columns[1].(isIdentity isPrimaryKey)←_true _true
+          sc2Columns[3].format←'{0:yy/MM/dd}'
+     
+          sc2grid←'#ScenarioGrid2'R.Add _.ejGrid((0 3⍴0)sc2Columns)
+     
+⍝-------------- results of scenario --------------------------------------
+          R.Add _.h2('Results of scenario '('.scname'New _.span))
+⍝ # of columns is dynamic AND we do not update - do we need ejGrid here or will a simple table do?
+⍝          sc3Columns←⎕NS¨3⍴⊂''
+⍝          sc3Columns.field←'id' 'name' 'lupd'
+⍝          sc3Columns.headerText←'ID' 'Name' 'Last Update'
+⍝          sc3Columns.textAlign←'Right' 'Left' 'Left' 'Right' 'Right'
+⍝          sc3Columns[1].(isIdentity isPrimaryKey visible)←_true _true _false
+⍝          sc3Columns[3].format←'{0:yy/MM/dd}'
+⍝
+⍝          sc3grid←'#ScenarioGrid3'R.Add _.ejGrid((0 3⍴0)sc3Columns)
+     
+     
+⍝          pfsc←BuildListPfSc ClientSummary
   ⍝BPB - this value errors on ChainedSelect
   ⍝      ('#pfselSel'R.Add _.ChainedSelect pfsc).On'change' 'UpdateChart'
      
@@ -113,6 +175,8 @@
      
      
       :Case 3
+     
+      :Case 4
           ig←'#t3settings'(R.Add _.Form).Add _.InputGrid
           ⍝ ig.Labels←'<i class="fa fa-user"></i>' '<i class="fa fa-at"></i>'
           ⍝ Following would be nice, but does not produce desired effect, so for the time being it is commented out.
@@ -151,16 +215,19 @@
       ⎕←'Save that data!'
      
      
-      R←Execute'green'#._.jBox.Notice(⊂(New _.Icon'fa-check')' Settings saved.')
+      R←Execute'green'#._.jBox.Notice((New _.Icon'fa-check'),New _.span' Settings saved.')
     ∇
 
-    ∇ R←CallbackFn1  ⍝ handles callbacks of grid with list of portfolios
+    ∇ R←CallbackFn1;ridx;tab  ⍝ handles callbacks of grid with list of portfolios
       :Access public
       :Select _event
       :Case 'rowSelected'
-          ridx←Get'ridx'
-          pfItemsGridData←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioSummary'((SessionGet'UID')ridx.id)
-          pfItemsGridData[;1]←Commodities[Commodities[;1]⍳pfItemsGridData[;1];4] ⋄ pfItemsGridData←1 0 1 1 1 1/pfItemsGridData
+          row←Get'row'
+          (CurrPFid CurrPFname)←row.(id name)
+          pfItemsGridData←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioSummary'((SessionGet'UID')(row.id))
+          pfItemsGridData[;1]←Commodities[Commodities[;1]⍳pfItemsGridData[;1];4]
+          pfItemsGridData←1 0 1 1 1 1/pfItemsGridData  ⍝ remove separate title-column for data
+     
           tab←#.JSON.fromTable'title' 'purch' 'count' 'price' 'val'⍪pfItemsGridData
           :If 0<1↑⍴pfItemsGridData
               tab.purch←1 #._JSS.JSDate¨tab.purch
@@ -170,27 +237,51 @@
           R,←'#pfname'Replace ridx.name
      
       :Case 'endAdd'
-          name←_PageData.editcell.name
+          data←Get'editcell'
           port←0 4⍴0    ⍝ prototype of a portfolio
-          id←CatchAPIErrors(SessionGet'APIref').CallAPI'AddPortfolio'((SessionGet'UID')name port)
+          id←CatchAPIErrors(SessionGet'APIref').CallAPI'AddPortfolio'((SessionGet'UID')data.name port)
           ListPortfolios⍪←id name ⎕TS 0 0
           tab←#.JSON.fromTable'id' 'name' 'lupd' 'cntComm' 'cntScen'⍪ListPortfolios
           tab.lupd←1 #._JSS.JSDate¨tab.lupd
-          tab2←1 0 1 #.JSON.fromAPL tab
-          R←Execute('$("#currPf").show();var gobj = $("#ListPortfolios").data("ejGrid");gobj.dataSource(',tab2,');')
-     
+          tab←1 0 1 #.JSON.fromAPL tab
+          R←Execute('$("#currPf").show();var gobj = $("#ListPortfolios").data("ejGrid");gobj.dataSource(',tab,');')
       :Case 'endDelete'
-          id←2⊃⎕VFI _PageData.editcell.id
+          id←(Get'editcell').id
           CatchAPIErrors(SessionGet'APIref').CallAPI'DeletePortfolio'(id)
       :Case 'endEdit'
-          (id name)←_PageData.editcell.(id name) ⋄ id←2⊃⎕VFI id
+          id←(Get'editcell').id
           CatchAPIErrors(SessionGet'APIref').CallAPI'UpdatePortfolio'(id name)
-          ListPortfolios←(ListPortfolios[;1]≠id)⌿ListPortfolios
+          ListPortfolios[ListPortfolios[;1]⍳id;2 3]←name ⎕TS
       :Else
           ⎕←'No handler for event ',_event
           ∘∘∘
       :EndSelect
     ∇
+
+∇ R←sc1CallbackFn;ridx;tab  ⍝ handles callbacks of grid with list of scenarios
+      :Access public
+      :Select _event
+      :Case 'rowSelected'
+          row←Get'row'
+          scen←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenario'(row.id)
+          sc2GridData←2⊃scen
+     
+          tab←#.JSON.fromTable'end' 'outlook' 'volatility'⍪sc2GridData
+          tab.end←1 #._JSS.JSDate¨tab.end
+          tab←1 0 1 #.JSON.fromAPL tab
+          R←Execute('var gobj = $("#ScenarioGrid2").data("ejGrid");gobj.dataSource(',tab,');')
+     
+⍝ todo: Update grid with scen-results!
+⍝ handlers to add, rename or delete scenario
+⍝ edit/add/delete sec-params
+     
+      :Else
+          ⎕←'No handler for event ',_event
+          ∘∘∘
+      :EndSelect
+    ∇
+
+
 
     ∇ R←CallbackFn2  ⍝ handles callbacks of grid within list of a portfolios items (commodities)
       :Access public
@@ -229,9 +320,28 @@
       :EndSelect
     ∇
 
-    ∇ UpdatePortfolioDetails
+    ∇ R←UpdatePortfolioDetails
       :Access public
-      ∘∘∘
+      ds←Get'dataSource'
+      ds←{⍵.val≢⎕NULL:⍵ ⋄ ⍵.(val←count×price) ⋄ ⍵}¨ds
+      ds←(⊂Commodities){i←⍺[;1]⍳⊂⍵.title ⋄ i>1↑⍴⍺:⍵ ⋄ ⍵.title←4⊃⍺[i;] ⋄ ⍵}¨ds  ⍝ replace code of stock with title
+      tab←1 0 1 #.JSON.fromAPL ds
+      R←Execute('var gobj = $("#pfItemsGrid").data("ejGrid");gobj.dataSource(',tab,');')
+     
+      ds.purch←#.Dates.ParseISODate¨ds.purch
+      port←↑ds.(title count price purch)  ⍝ back into array
+      port[;1]←{¯1↓(⌽∧\⌽⍵≠'(')/⍵}¨port[;1]  ⍝ extract stock code (last word enclosed in () - we do not explicity check for closing ) etc., but assume string will be correct
+      CatchAPIErrors(SessionGet'APIref').CallAPI'UpdatePortfolio'(CurrPFid CurrPFname port)
+     
+      ⍝ user may have added or deleted items, so we should update the count of commodities in the top grid:
+      ClientSummary←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
+      ListPortfolios←ClientSummary[;6 1 5 2 3]
+      tab←#.JSON.fromTable'id' 'name' 'lupd' 'cntComm' 'cntScen'⍪ListPortfolios
+      tab.lupd←1 #._JSS.JSDate¨tab.lupd
+      tab←1 0 1 #.JSON.fromAPL tab
+      R,←Execute('var gobj = $("#ListPortfolios").data("ejGrid");gobj.dataSource(',tab,');')
+     
+     
     ∇
 
 
