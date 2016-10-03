@@ -8,6 +8,38 @@ b, strong, #logo {
     font-size: 1.5em;
 }
 
+
+/*** Benchmark-Results (Scenario-Tab) *****/
+
+.scBenchmark > thead > tr > th {
+	background-color: silver;
+	font-weight: bold	;
+	padding: .3em .5em .2em .5em;
+	border: 1px solid grey;
+}
+
+.scBenchmark {
+	border-collapse: collapse;
+	
+}
+
+.scBenchmark > tbody > tr > td {
+	padding: .3em .5em .2em .5em;
+	border: 1px solid grey;
+	color: black;
+}
+
+/* Positive Result */
+.scBenchResultP {
+	background-color: lime;
+}
+
+/* Negative Result */
+.scBenchResultN {
+	background-color: red;
+	font-weight: bold;
+}
+
 .dc-tabs>label {
     font-size: larger;
 }
