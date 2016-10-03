@@ -314,9 +314,9 @@
 
     :section Calculation
 
-    ∇ (rc msg r)←RunScenario sid;today;scen;port;max;dates;days;portfolio;data
+    ∇ (rc msg data)←RunScenario sid;today;scen;port;max;dates;days;portfolio;data
       :Access public shared
-      (rc msg r)←0 '' ''
+      (rc msg data)←0 '' ''
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
           scen←GetScenario sid
@@ -327,7 +327,7 @@
           data←↑(1↓{⍵,(¯1↑⍵)+0.01×⌊0.5+100×¯0.5+?0}⍣days)¨(portfolio←2⊃3⊃port)[;3]
           data,⍨←portfolio[;1 3]
           data⍪⍨←(⊂'Commodity'),{3↑#.utils.IDNToDate ⍵}¨today,today+⍳days
-          data putScenarioResults(1⊃3⊃scen)[3]
+          data putScenarioResults(1⊃3⊃scen)[3]  
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
