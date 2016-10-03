@@ -1,4 +1,4 @@
-﻿:Class App  
+﻿:Class App
     (⎕IO ⎕ML ⎕WX)←1 1 3
 
 ⍝ Note: Holding is being done both with ⎕FHOLD and :Hold
@@ -330,6 +330,51 @@
           data putScenarioResults(1⊃3⊃scen)[3]  
      Done:⎕FHOLD ⍬
       :EndHold
+    ∇
+
+
+    ∇ (rc msg data)←BenchmarkScenario sid;scen;res;i;v1;v2;t;bmCodes;port
+      :Access public shared
+    ⍝ calculates some "benchmarks" of a scenario (returns a 2 col-matrix with [;1]=Code  and [;2]=value, so it's easy to add)
+    ⍝ Current Results are:
+    ⍝   start_date, end_date, start_value, end_value - you may guess these ;-)
+    ⍝   pct - percentage of change from end vs. start
+    ⍝ Feel free to BYO ;-)
+    ⍝ As a convenience, use sid=¯1 to retrieve the list of calculated "benchmarks" as [;1] code and [;2]=label
+      bmCodes←'start_date' 'end_date' 'start_value' 'end_value' 'pct'
+      bmCodes,[1.5]←'Start Date' 'End Date' 'Start Value' 'End Value' '+/- %'
+      (rc msg)←0 ''
+      :If sid>¯1
+          :Hold 'portfolio' 'scenario'
+              ⎕FHOLD portfolioTn,scenarioTn
+              scen←GetScenario sid
+              port←GetPortfolio(1⊃3⊃scen)[2]
+              :If 0∊⍴port
+                  rc←¯1 ⋄ msg←'Empty portfolio'
+              :Else
+                  scen←GetScenario sid
+                  :If 0∊⍴res←3 3⊃scen
+                      rc←¯2 ⋄ msg←'No results calculated'
+                  :Else
+                      port←3 2⊃port
+                      i←port[;1]⍳1↓res[;1]
+                      :If ∨/i>1↑⍴port
+                          rc←¯3 ⋄ msg←'Commodity-IDs out of sync between model and result'
+                      :Else
+                          t←⍬⍴⌽⍴res
+                          v1←port[i;2]+.×1↓res[;2]
+                          v2←port[i;2]+.×1↓res[;t]
+                          data←bmCodes[⍳2;1],[1.5]#.utils.fmtDate¨res[1;2,t]
+                          data⍪←bmCodes[3 4 5;1],[1.5]v1{⍺,⍵,100-⍨100×⍵÷⎕CT⌈⍺}v2
+                      :EndIf
+                  :EndIf
+              :EndIf
+     Done:    ⎕FHOLD ⍬
+          :EndHold
+      :Else
+          data←bmCodes
+      :EndIf
+     
     ∇
     :endsection
 
