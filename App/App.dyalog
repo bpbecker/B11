@@ -576,7 +576,7 @@
     ∇ (rc msg data)←GetCommodities
       :Access public shared
       (rc msg)←0 ''
-      data←getCommodityDir
+      data←{⍵,⍵[;1]{⍵,' (',⍺,')'}¨⍵[;2]}getCommodityDir
     ∇
 
     ∇ (rc msg data)←GetScenariosForPortfolio pid
