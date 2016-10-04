@@ -12,6 +12,7 @@
     ⍝ stored in:
     ⍝ MiServer\PlugIns\Syncfusion-14.2.0.26\assets\css\web\
 
+    Index←{⍵/⍳⍴⍵}  ⍝ Tool: index of 1s in boolean vector
 
 
     ∇ z←PreFlightCheck

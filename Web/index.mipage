@@ -1,11 +1,15 @@
 ﻿:class index : B11_Regular
 
 ⍝ Issues:
-⍝ - "Settings"-Tab: Position of jBox (-> MB)
+⍝ - unimportant detail: "Settings"-Tab: Position of jBox (-> MB)
 ⍝ - StackPanel.Horizontal←1: Layout
+⍝   actually I would prefer to use floated divs, but they do not seem to float, as the parent container-div seems to prevent that. Adám?!
+⍝ - (Scenarios: ejGrids area ends at bottom of screen, result-table may extend beyond that - seen twice, not sure how to repro, send a forum-msg to SF)
+⍝ - Scenarios: List of Scen: when adding/editing, the date-cell gets accessible. It seems there is no way to
+⍝    assign a readonly-type, it is only possible to reject edits of that cell. We do not need that, since
+⍝    we only process the name anyway and rewrite the table afterwards...
 ⍝
 ⍝ Next Steps:
-⍝ + Charts
 ⍝ + MAJOR Clean up code needed: indent, localize variables, harmonize names, add Section, remove un-executed functions, re-organize functionality, :cases etc.
 
 
@@ -22,22 +26,25 @@
     :field public CurrPF
     :field public CurrSCid←0  ⍝ id of current scenario
     :field public CurrSCname←''
+    :field public CurrSCdata←0 0⍴0
+    :field public chSelect
 
-    Index←{⍵/⍳⍴⍵}  ⍝ Tool: index of 1s in boolean vector
 
     ∇ Compose
       :Access public
       Use'jBox'
       →PreFlightCheck↓0
       ClientSummary←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
-      Commodities←CatchAPIErrors(SessionGet'APIref').CallAPI('GetCommodities')  ⍝ [;1]=id, [;2]=name, [;3]=price
-      Commodities,←{(2⊃⍵),' (',(1⊃⍵),')'}¨↓Commodities   ⍝ [;4] "nice" title combining id & name
+      Commodities←CatchAPIErrors(SessionGet'APIref').CallAPI('GetCommodities')  ⍝ [;1]=id, [;2]=name, [;3]=price, [;4]=nice title
       Add _.Script('commtab'_JSS.JSData'code' 'name' 'price' 'title'⍪Commodities)
-      Add _.Script('commodities'_JSS.JSData('text' 'value')⍪Commodities[;4 1])  ⍝ SF insist on text & value-column!
+      Add _.Script('commodities'_JSS.JSData('text' 'value')⍪Commodities[;4 1])
       maintabs←'#maintabs'Add _.ejTab
       maintabs.Titles←((_.Icon'fa-table')' Portfolios')((_.Icon'fa-magic')' Scenarios')((_.Icon'fa-bar-chart')' Charts')((_.Icon'fa-cog')' Settings')
       maintabs.Sections←MakeTab¨⍳4
 ⍝      'hiddenItemIndex'maintabs.Set 1 2 ⍝ would be nice, but SF can not make them visible again (show not working in CallbackFn1)
+⍝      remove comment and try this in console:
+⍝ $("#maintabs").data("ejTab").showItem(2);
+⍝ the content is shown, but the tab stays hidden. I posted on SFs forum about that...
     ∇
 
 
@@ -45,9 +52,8 @@
       R←'.container'New _.div
       :Select i
       :Case 1
-          spanel←R.Add _.StackPanel
-          spanel.Horizontal←0
-          ypf←spanel.Add _.div
+          tabContent←R.Add _.div
+          ypf←'style="float:left;"'tabContent.Add _.div
           :If 0∊⍴ClientSummary
               ListPortfolios←0 5⍴''
           :Else
@@ -64,23 +70,15 @@
           pfColumns[3].format←'{0:yy/MM/dd}'
           pfColumns[1].(isIdentity isPrimaryKey visible)←_true _true _false
      
-          tab←#.JSON.fromTable'id' 'name' 'lupd' 'cntComm' 'cntScen'⍪ListPortfolios
-          tab.lupd←1 #._JSS.JSDate¨tab.lupd
-          tab2←1 0 1 #.JSON.fromAPL tab
-     
           pflgrid←'#ListPortfolios'ypf.Add _.ejGrid((0 5⍴0)pfColumns)
-     
-          ⍝'dataSource'pflgrid.Set tab2
-          ⍝ ↑↑ that did not do it. Would be nice if we had a way to avoid JS when assigning the data, but as I wanted to
-          ⍝ have it formatted in SF, we need "new Date(...,...,...)" for the date-column
-          ⍝ which seems to make it necessary to go that way:
-          ypf.Add _.Script(⊂'$(function(){var gobj=$("#ListPortfolios").data("ejGrid"); gobj.dataSource(',tab2,');});')
+          initCode←'ListPortfolios'UpdateDataSourceWith(ListPortfolios)('id' 'name' 'lupd' 'cntComm' 'cntScen')('lupd')
+          ypf.Add _.Script('$(function(){',initCode,'});')
      
           tbi←2↓∊', ej.Grid.ToolBarItems.'∘,¨'Add' 'Edit' 'Delete' 'Update' 'Cancel'
           'toolbarSettings'pflgrid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,']}'
           'editSettings'pflgrid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true,editMode: ej.Grid.EditMode.ExternalFormTemplate, externalFormTemplateID: "#pfltemplate" }'
           'allowSorting'pflgrid.Set _true
-          pflgrid.On'rowSelected' 'CallbackFn1'(('row' 'argument' 'data'))  ⍝ ⎕IO of rowindex=0
+          pflgrid.On'rowSelected' 'CallbackFn1'(('row' 'argument' 'data'))
           pflgrid.On'endAdd' 'CallbackFn1'('editcell' 'argument' 'data')
           pflgrid.On'endDelete' 'CallbackFn1'('editcell' 'argument' 'data')
           pflgrid.On'endEdit' 'CallbackFn1'('editcell' 'argument' 'data')
@@ -94,7 +92,7 @@
 ⍝       </tr>
 ⍝   </table>
      
-          cpf←'#currPf' 'style=display:none'spanel.Add _.div
+          cpf←'#currPf' 'style="display:none;float:left;"'tabContent.Add _.div
           '#h2pfc'cpf.Add _.h2('Listing of portfolio '('.pfname'New _.span))
      
           pfItemsGridData←0 6⍴' '
@@ -130,14 +128,14 @@
      
       :Case 2
 ⍝----------- Scenarios for current pf ----------------------------------
-          pfScen←'#pfScen' 'style=display:none'R.Add _.div
+          pfScen←'#pfScen' 'style=display:none;float:left;'R.Add _.div
           pfScen.Add _.h2('Scenarios for portfolio '('.pfname'New _.span))
           sc1Columns←⎕NS¨3⍴⊂''
           sc1Columns.field←'id' 'name' 'lupd'
           sc1Columns.headerText←'ID' 'Name' 'Last Update'
           sc1Columns.textAlign←'Left' 'Left' 'Left'
           sc1Columns[1].(isIdentity isPrimaryKey visible)←_true _true _false
-          sc1Columns[3].format←'{0:yy/MM/dd}'
+          sc1Columns[3].(format isIdentity)←'{0:yy/MM/dd}'_true
      
           sc1grid←'#ScenarioGrid1'pfScen.Add _.ejGrid((0 3⍴0)sc1Columns)
      
@@ -156,6 +154,9 @@
 ⍝ console.log(args);
 ⍝ console.log(args.itemName);
 ⍝}
+⍝ $(function(){
+⍝   $("#ScenarioGrid1_RunScenario").attr("title","Run current scenario");
+⍝ });
           tbi←2↓∊', ej.Grid.ToolBarItems.'∘,¨'Add' 'Edit' 'Delete' 'Update' 'Cancel'
           'toolbarSettings'sc1grid.Set'⍎{ showToolbar: true, toolbarItems: [',tbi,'] , customToolbarItems: ["RunScenario"]}'
           'editSettings'sc1grid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true }'
@@ -164,15 +165,17 @@
           Add _.Script'$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'   ⍝ disabled by default
      
 ⍝------------ params of scenario -----------------------------------------
-          scParams←'#scParams' 'style=display:none'R.Add _.div   ⍝ hide as long as we have none...
+          scParams←'#scParams' 'style="display:none;float:left;"'R.Add _.div   ⍝ hide as long as we have none...
           scParams.Add _.h2('Parameters of scenario '('.scname'New _.span))
           sc2Columns←⎕NS¨4⍴⊂''
           sc2Columns.field←'id' 'end' 'outlook' 'volatility'
           sc2Columns.headerText←'id' 'End' 'Outlook' 'Volatility'
-          sc2Columns.textAlign←'Left' 'Left' 'Left' 'Left'
+          sc2Columns.textAlign←'Left' 'Left' 'Right' 'Right'
           sc2Columns[1].(isIdentity isPrimaryKey visible)←_true _true _false
           sc2Columns[2].(editType format)←'⍎ej.Grid.EditingType.DatePicker' '{0:yy/MM/dd}'
           sc2Columns[2].defaultValue←'⍎new Date(',(¯1↓#.HtmlUtils.enlist(⍕¨0 ¯1 0+3↑⎕TS),¨','),')'
+          sc2Columns[3].(editType format editParams)←'numericedit' '{0:n0}' '⍎{decimalPlaces: 0, minValue: -2, maxValue: 2}'
+          sc2Columns[4].(editType format editParams)←'numericedit' '{0:n0}' '⍎{decimalPlaces: 0, minValue: 1, maxValue: 5}'
      
      
           sc2grid←'#ScenarioGrid2'scParams.Add _.ejGrid((0 4⍴0)sc2Columns)
@@ -187,7 +190,7 @@
 ⍝-------------- results of scenario --------------------------------------
           bmL←CatchAPIErrors(SessionGet'APIref').CallAPI'BenchmarkScenario'(¯1)  ⍝ codes+labels of benchmark-results
      
-          scResults←'#scResults' 'style=display:none'R.Add _.div   ⍝ hide as long as we have none...
+          scResults←'#scResults' 'style="display:none;float:left;"'R.Add _.div   ⍝ hide as long as we have none...
      
           scResults.Add _.h2('Results of scenario '('.scname'New _.span))
           scResults.Add _.h3'Benchmark'
@@ -208,15 +211,18 @@
      
      
       :Case 3
-          ch←'#chartContainer'R.Add _.div
-     ⍝ ∘∘∘Write code∘∘∘
      
+          chrt←'#chartContainer'R.Add _.div
+          chrt.Add'Please select a chart to plot for Scenario '
+          '.scname'chrt.Add _.span
+          chrt.Add _.br
+          chSelect←'#chSelect'chrt.Add _.Select
+          chSelect.On'change' 'onChartSelect'
+          ⍝ Comparison of scenario-benchmarks / Sum / Selected commodity
+          '#TheChart'chrt.Add _.div    ⍝ prepare a region for ejChart
      
       :Case 4
           ig←'#t3settings'(R.Add _.Form).Add _.InputGrid
-          ⍝ ig.Labels←'<i class="fa fa-user"></i>' '<i class="fa fa-at"></i>'
-          ⍝ Following would be nice, but does not produce desired effect, so for the time being it is commented out.
-          ⍝ If you are reading this and have time to find a working solution, pls. feel free to rewrite
           ig.Labels←(New _.Icon'fa-user')(New _.Icon'fa-at')
           ig.Inputs←'name' 'mail'New¨_.EditField _.EditField
           ig.Inputs[1 2].SetAttr⊂'style="width:30em;"'
@@ -233,7 +239,7 @@
     ∇ R←RunScenario
       :Access public
       data←CatchAPIErrors(SessionGet'APIref').CallAPI'RunScenario'(CurrSCid)
-      R←Execute'ScenarioGrid3'UpdateDataSourceWith(data[;1 2,¯1↑⍴data])('commodity' 'firstval' 'lastval')('')
+      R←Execute'ScenarioGrid3'UpdateDataSourceWith(data[;1 2,¯1↑⍴data])('commodity' 'firstval' 'lastval')
       R,←Execute'$("#scResults").show();'
     ∇
 
@@ -285,8 +291,8 @@
           data←Get'editcell'
           port←0 4⍴0    ⍝ prototype of a portfolio
           id←CatchAPIErrors(SessionGet'APIref').CallAPI'AddPortfolio'((SessionGet'UID')data.name port)
-          ListPortfolios⍪←id name ⎕TS 0 0
-          R←Execute'currPF'UpdateDataSourceWith(ListPortfolios)('id' 'name' 'lupd' 'cntComm' 'cntScen')('lupd')
+          ListPortfolios⍪←id data.name ⎕TS 0 0
+          R←Execute'ListPortfolios'UpdateDataSourceWith(ListPortfolios)('id' 'name' 'lupd' 'cntComm' 'cntScen')('lupd')
       :Case 'endDelete'
           id←(Get'editcell').id
           CatchAPIErrors(SessionGet'APIref').CallAPI'DeletePortfolio'(id)
@@ -315,11 +321,11 @@
       :Access public
       row←Get'row'
       CurrSCid←row.id
-      scen←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenario'(CurrSCid)
-      sc2GridData←2⊃scen
-      sc2Res←3⊃scen
+      CurrSCdata←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenario'(CurrSCid)
+      sc2GridData←2⊃CurrSCdata
+      sc2Res←3⊃CurrSCdata
       R←Execute'ScenarioGrid2'UpdateDataSourceWith(sc2GridData)('end' 'outlook' 'volatility')('end')
-      R,←'.scname'Replace(CurrSCname←1 4⊃scen)
+      R,←'.scname'Replace(CurrSCname←1 4⊃CurrSCdata)
       R,←Execute'$("#scParams").show();'
       :If 0<1↑⍴sc2GridData
           R,←Execute'$("#ScenarioGrid1_RunScenario").prop("disabled" , false);'
@@ -329,6 +335,7 @@
      
       :If 0<1↑⍴sc2Res
           bm←CatchAPIErrors(SessionGet'APIref').CallAPI'BenchmarkScenario'(CurrSCid)
+          bmL←CatchAPIErrors(SessionGet'APIref').CallAPI'BenchmarkScenario'(-1)
         ⍝ Format benchmark results:
           i←bm[;1]⍳'start_value' 'end_value' ⋄ bm[i;2]←(⊂'CI15')⎕FMT¨bm[i;2]
           i←bm[;1]⍳⊂'pct' ⋄ pct←bm[i;2] ⋄ bm[i;2]←(⊂'M<->P<+>CF8.2')⎕FMT¨bm[i;2]
@@ -341,9 +348,13 @@
           R,←Execute'var gobj=$("#ScenarioGrid3").data("ejGrid");gobj.getColumnByField("firstval").headerText="',from,'";gobj.getColumnByField("lastval").headerText="',to,'";gobj.refreshContent(true);'
           R,←Execute'ScenarioGrid3'UpdateDataSourceWith(1 0↓sc2Res[;1 2,¯1↑⍴sc2Res])('commodity' 'firstval' 'lastval')('')
           R,←Execute'$("#scResults").show();'
+          Charts←1 2⍴'Comparison of scenarios' '_cmp'
+          Charts⍪←'Sum of commodities' '_sum'
+          Charts⍪←(1↓sc2Res[;1]),[1.5]⍕¨1+⍳¯1+⍬⍴⍴sc2Res
+          R,←chSelect.ReplaceOptions Charts
       :Else
-          ∘∘∘
           R,←Execute'$("#scResults").hide();'
+          R,←chSelect.ReplaceOptions(1 2⍴'No scenario-results available' '0')
       :EndIf
      
      
@@ -355,10 +366,10 @@
       :Select _event
       :Case 'endAdd'
           name←(Get'dataSource').name
-          id←CatchAPIErrors(SessionGet'APIref').CallAPI'AddScenario'(CurrPF name(0 3⍴0))
-          ScenarioGrid1Data←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(CurrPF)
+          CurrSCid←CatchAPIErrors(SessionGet'APIref').CallAPI'AddScenario'(CurrPFid name(0 3⍴0))
+          ScenarioGrid1Data←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(CurrPFid)
      
-          R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
+          R←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
           R,←'.pfname'Replace name
           R,←Execute'$("#ScenarioGrid1_RunScenario").prop("disabled" , false);'
           R,←Execute'$("#scParams").show();'
@@ -368,7 +379,7 @@
       :Else
           ⎕←'no case for ',_event
           ∘∘∘
-      :EndIf
+      :EndSelect
     ∇
 
     ∇ R←UpdateScenarioParams
@@ -377,7 +388,6 @@
       tab←↑ds.(end outlook volatility)
       tab[;1]←#.Dates.ParseISODate¨tab[;1]
       tab←tab[⍋↑tab[;1];]  ⍝ ascending order of date
-      ∘∘∘
       CatchAPIErrors(SessionGet'APIref').CallAPI'UpdateScenario'(CurrSCid CurrSCname tab)
       R←Execute('ScenarioGrid2'UpdateDataSourceWith(tab('end' 'outlook' 'volatility')'end'))
     ∇
@@ -412,14 +422,16 @@
           ∘∘∘
       :EndSelect
     ∇
-    ∇ R←GridId UpdateDataSourceWith(table colnames dateCol);tab;dateFld
+    ∇ R←GridId UpdateDataSourceWith arg;tab;dateFld
       :Access public
-⍝ transform a pfItem-List into the corresponding JS
+    ⍝ transform a pfItem-List into the corresponding JS
+      (table colnames dateCol)←arg defaultArgs(0 0⍴0)('')('')
       :If ~(⊂'id')∊colnames    ⍝ append id-column if not found in data
           table,←⍳1↑⍴table ⋄ colnames,←⊂'id'
       :EndIf
       tab←colnames #.JSON.fromTable table
       :If ~0∊1↑⍴dateCol
+      :AndIf ~0∊⍴table
           dateFld←1 #._JSS.JSDate¨tab⍎¨⊂dateCol
           ⍎'tab.',dateCol,'←dateFld'
       :EndIf
@@ -458,12 +470,6 @@
      
     ∇
 
-    ∇ showNSvar ref
-      :Access public
-      nms←ref[1].⎕NL-2
-      nms⍪↑ref⍎¨⊂nms
-     
-    ∇
 
 
     ∇ R←UpdateChart;data
@@ -499,6 +505,44 @@
       rnd←cnt.Render
       rndHtml←rnd
       R←'#maintabs_section_2'Replace rndHtml
+    ∇
+
+
+    ∇ R←onChartSelect
+      :Access public
+      res←3⊃CurrSCdata
+      dataX←1↓res[1;]
+      :If _value≡'_sum'
+          dataY←+⌿1 1↓res ⋄ series←'Sum'
+      :ElseIf _value≡'_cmp'  ⍝ comparison of scenarios
+          ∘∘∘
+      :Else ⍝ value is code of commodity
+          i←⍬⍴2⊃⎕VFI _value ⋄ dataY←1↓res[i;] ⋄ series←Commodities{⊃(⍺[;4],⍵)[⍺[;1]⍳⊂⍵]}1⊃res[i;]
+      :EndIf
+      pnts←'x' 'y'#.JSON.fromTable dataX,[1.5]dataY
+      pnts.x←1 #._JSS.JSDate¨pnts.x
+      pnts←1 0 1 #.JSON.fromAPL pnts
+     
+     
+      code←'$("#TheChart").ejChart( {'
+      code,←'primaryYAxis: {'
+      code,←'title: {text: "Value ($)"}'
+      code,←'},'
+      code,←'primaryXAxis: {'
+      code,←' valueType: "datetime",'
+      code,←'labelFormat: "MMM/dd",'
+      code,←'title: {text: "Date"},'
+      code,←'} ,'
+      code,←'series: [ { points: ',pnts,','
+      code,←' enableAnimation: true,'
+      code,←'type: "line", '
+      code,←' tooltip: {visible: true } ,'
+      code,←'name: "',series,'"'
+      code,←'}],'
+      code,←'title: {text: "',CurrPFname,' / ',CurrSCname,' / Simulated valuation"} , '
+      code,←' name: "Projected value"'
+      code,←'});'
+      R←Execute code
     ∇
 
 
