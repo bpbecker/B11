@@ -67,7 +67,7 @@
           dir←getPortfolioDir
           pid←nextPortfolioId
           ptr←nextPortfolioSlot dir
-          putPortfolioDir dir⍪pid cid ptr pname (⍬⍴⍴port) ⎕TS ⎕TS
+          putPortfolioDir dir⍪pid cid ptr pname(⍬⍴⍴port)⎕TS ⎕TS
           port putPortfolio ptr
      Done:⎕FHOLD ⍬
       :EndHold
@@ -86,6 +86,12 @@
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
+
+    ∇ r←PortfolioPrototype
+      :Access public shared
+      r←0 ''(0 4⍴'' 0 0 ⎕TS)
+    ∇
+
 
     :endsection
 
@@ -117,7 +123,7 @@
           :If ∨/mask←dir[;1]=pid
               DeletePortfolioScenarios pid
               ⍬ putPortfolio mask/dir[;3]
-              putPortfolioDir (~mask)⌿dir
+              putPortfolioDir(~mask)⌿dir
           :Else
               (rc msg)←¯2 'portfolio not found'
           :EndIf
@@ -201,10 +207,10 @@
           ⎕FHOLD portfolioTn,scenarioTn
           dir←getPortfolioDir
           :If 0≠ind←dir[;1]#.utils.iotaz pid
-              DeletePortfolioScenarios pid
               dir[ind;4]←⊂pname
               :If 2<1↑⍴arg ⍝ port is optional - if it is not there, we will only update the name
                   port putPortfolio dir[ind;3]
+                  DeletePortfolioScenarios pid
                   dir[ind;5]←⊃⍴port
               :EndIf
               dir[ind;7]←⊂⎕TS       ⍝ updating the name will also update the timestamp
@@ -327,7 +333,7 @@
           data←↑(1↓{⍵,(¯1↑⍵)+0.01×⌊0.5+100×¯0.5+?0}⍣days)¨(portfolio←2⊃3⊃port)[;3]
           data,⍨←portfolio[;1 3]
           data⍪⍨←(⊂'Commodity'),{3↑#.utils.IDNToDate ⍵}¨today,today+⍳days
-          data putScenarioResults(1⊃3⊃scen)[3]  
+          data putScenarioResults(1⊃3⊃scen)[3]
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
