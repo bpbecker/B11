@@ -29,8 +29,10 @@
     :field public CurrSCdata←0 0⍴0
     :field public chSelect
 
+    :section Main
 
-    ∇ Compose
+
+    ∇ Compose;maintabs
       :Access public
       Use'jBox'
       →PreFlightCheck↓0
@@ -46,7 +48,6 @@
 ⍝ $("#maintabs").data("ejTab").showItem(2);
 ⍝ the content is shown, but the tab stays hidden. I posted on SFs forum about that...
     ∇
-
 
     ∇ R←MakeTab i;pfl_titles;pflgrid;tbi;pfItemsGridData;pfc_titles;pfItemsGrid;pfsc;pflist;pfs;ig;sbtn;pfColumns;tab;tab2;cpf
       R←'.container'New _.div
@@ -122,8 +123,6 @@
           'filterSettings'pfItemsGrid.Set'⍎{filterType: "excel"}'
           pfItemsGrid.On('endEdit endDelete endAdd')'UpdatePortfolioDetails'('dataSource' 'model' 'dataSource')
      
-          ⍝pfItemsGrid.On'endDelete' 'DeletePortfolioItem')('data' 'argument' 'data')('dataSource' 'model' 'dataSource'))
-⍝          'endEdit'pfItemsGrid.Set'⍎function(args){console.log(JSON.stringify(args.model.dataSource));}'
      
      
       :Case 2
@@ -135,7 +134,7 @@
           sc1Columns.headerText←'ID' 'Name' 'Last Update'
           sc1Columns.textAlign←'Left' 'Left' 'Left'
           sc1Columns[1].(isIdentity isPrimaryKey visible)←_true _true _false
-          sc1Columns[3].(format isIdentity)←'{0:yy/MM/dd}'_true
+          sc1Columns[3].format←'{0:yy/MM/dd}'
      
           sc1grid←'#ScenarioGrid1'pfScen.Add _.ejGrid((0 3⍴0)sc1Columns)
      
@@ -145,6 +144,7 @@
 ⍝ custom toolbar-item to run a scenario
 ⍝ good: we can have it
 ⍝ bad: the customToolBarItems below have to refer to the classname - and that classname is used  as title of the icon. Found no way to assign a specific text to use in tooltip...
+⍝ But with the JS in the script below we can achieve that..
      
           Add _.style'.RunScenario:before  {    content:"\f04b"; font-family:FontAwesome;  }'
           Add _.Script ScriptFollows
@@ -207,9 +207,6 @@
           'editSettings'sc3grid.Set'⍎{allowEditing: false, allowAdding: false, allowDeleting: false }'
           'allowSorting'sc3grid.Set _true
      
-     
-     
-     
       :Case 3
      
           chrt←'#chartContainer'R.Add _.div
@@ -222,6 +219,7 @@
           '#TheChart'chrt.Add _.div    ⍝ prepare a region for ejChart
      
       :Case 4
+     
           ig←'#t3settings'(R.Add _.Form).Add _.InputGrid
           ig.Labels←(New _.Icon'fa-user')(New _.Icon'fa-at')
           ig.Inputs←'name' 'mail'New¨_.EditField _.EditField
@@ -236,37 +234,10 @@
       R←R.Render
     ∇
 
-    ∇ R←RunScenario
-      :Access public
-      data←CatchAPIErrors(SessionGet'APIref').CallAPI'RunScenario'(CurrSCid)
-      R←Execute'ScenarioGrid3'UpdateDataSourceWith(data[;1 2,¯1↑⍴data])('commodity' 'firstval' 'lastval')
-      R,←Execute'$("#scResults").show();'
-    ∇
+    :endsection
 
-    ∇ R←BuildListPfSc cs;i
-      R←0 3⍴0
-      :For i :In Index cs[;3]>0
-          sc←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(cs[i;6])
-          R⍪←cs[i;1 6],1
-          :For j :In ↓sc
-              R⍪←j[4 1],2
-          :EndFor
-      :EndFor
-     
-    ∇
-
-
-    ∇ R←SaveTab3
-      :Access public
-      ⎕←'name=',Get'name'
-      ⎕←'mail=',Get'mail'
-      ⎕←'Save that data!'
-     
-     
-      R←Execute'green'#._.jBox.Notice((New _.Icon'fa-check'),New _.span' Settings saved.')
-    ∇
-
-    ∇ R←CallbackFn1;ridx;tab  ⍝ handles callbacks of grid with list of portfolios
+    :section Portfolios
+    ∇ R←CallbackFn1;ridx;tab;row;pfItemsGridData;data;port;id  ⍝ handles callbacks of grid with list of portfolios
       :Access public
       R←⍬
       :Select _event
@@ -289,33 +260,81 @@
      
       :Case 'endAdd'
           data←Get'editcell'
-          port←0 4⍴0    ⍝ prototype of a portfolio
+          port←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioPrototype'   ⍝ prototype of a portfolio
           id←CatchAPIErrors(SessionGet'APIref').CallAPI'AddPortfolio'((SessionGet'UID')data.name port)
           ListPortfolios⍪←id data.name ⎕TS 0 0
           R←Execute'ListPortfolios'UpdateDataSourceWith(ListPortfolios)('id' 'name' 'lupd' 'cntComm' 'cntScen')('lupd')
+     
       :Case 'endDelete'
           id←(Get'editcell').id
           CatchAPIErrors(SessionGet'APIref').CallAPI'DeletePortfolio'(id)
           ListPortfolios←ListPortfolios{⍺[(⍳1↑⍴⍺)~⍺[;1]⍳⊂⍵;]}id
           CurrSCid←0
+          R,←Execute'$("#currPf").hide();'
           R,←Execute'$("#pfScen").hide();'
           R,←Execute'$("#scParams").hide();'
+     
       :Case 'endEdit'
           id←(Get'editcell').id
           CatchAPIErrors(SessionGet'APIref').CallAPI'UpdatePortfolio'(id name)
           ListPortfolios[ListPortfolios[;1]⍳id;2 3]←name ⎕TS
-      :Else
-          ⎕←'No handler for event ',_event
-          ∘∘∘
+     
       :EndSelect
     ∇
 
-    ∇ R←DeletePortfolioItem
+    ∇ R←UpdatePortfolioDetails;ds;port;tab
       :Access public
-      data←Get'data'
-      ∘∘∘
+      ds←Get'dataSource'
+    ⍝ new items come with a field title_hidden and w/o id - so do not send back THAT array
+    ⍝ instead make sure data has the right format, save it and send back the updated pf:
+      ds←(⊂Commodities){i←⍺[;1]⍳⊂⍵.title ⋄ i>1↑⍴⍺:⍵ ⋄ ⍵.title←4⊃⍺[i;] ⋄ ⍵}¨ds  ⍝ replace code of stock with title
+      ds.purch←#.Dates.ParseISODate¨ds.purch
+      ds.(count price)←{2⊃⎕VFI⍕⍵}¨ds.(count price)  ⍝ paranoid? No, SF will accept error-prone input ("0,0" when decsep is "."), so better safe than sorry!
+     
+      port←↑ds.(title count price purch)  ⍝ back into array
+      port[;1]←{¯1↓(⌽∧\⌽⍵≠'(')/⍵}¨port[;1]  ⍝ extract stock code (last word enclosed in () - we do not explicity check for closing ) etc., but assume string will be correct
+      CatchAPIErrors(SessionGet'APIref').CallAPI'UpdatePortfolio'(CurrPFid CurrPFname port)   ⍝ write back to file
+     
+    ⍝ and update screen
+      port[;1]←(⊂Commodities){~(⊂⍵)∊⍺:⍵ ⋄ 2⊃⍺[⍺[;1]⍳⊂⍵;]}¨port[;1]
+      port,←0    ⍝ append a column for the Basis
+      port[;5]←×/port[;2 3]
+     
+      R←Execute'pfItemsGrid'UpdateDataSourceWith port('title' 'count' 'price' 'purch' 'val')('purch')
+     
+    ⍝ user may have added or deleted items, so we should update the count of commodities in the top grid:
+      ClientSummary←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
+      ListPortfolios←ClientSummary[;6 1 5 2 3]
+      tab←#.JSON.fromTable'id' 'name' 'lupd' 'cntComm' 'cntScen'⍪ListPortfolios
+      tab.lupd←1 #._JSS.JSDate¨tab.lupd
+      tab←1 0 1 #.JSON.fromAPL tab
+      R,←Execute('var gobj = $("#ListPortfolios").data("ejGrid");gobj.dataSource(',tab,');')
+     
+     
     ∇
 
+    :endsection
+
+
+    :section Scenarios
+    ∇ R←RunScenario;data
+      :Access public
+      data←CatchAPIErrors(SessionGet'APIref').CallAPI'RunScenario'(CurrSCid)
+      R←Execute'ScenarioGrid3'UpdateDataSourceWith(data[;1 2,¯1↑⍴data])('commodity' 'firstval' 'lastval')
+      R,←Execute'$("#scResults").show();'
+    ∇
+
+    ∇ R←BuildListPfSc cs;i
+      R←0 3⍴0
+      :For i :In Index cs[;3]>0
+          sc←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(cs[i;6])
+          R⍪←cs[i;1 6],1
+          :For j :In ↓sc
+              R⍪←j[4 1],2
+          :EndFor
+      :EndFor
+     
+    ∇
 
     ∇ R←ClickOnScenario;ridx;tab;cellAtts;pct;i;sc2Res;bm  ⍝ handles callbacks of grid with list of scenarios
       :Access public
@@ -356,10 +375,7 @@
           R,←Execute'$("#scResults").hide();'
           R,←chSelect.ReplaceOptions(1 2⍴'No scenario-results available' '0')
       :EndIf
-     
-     
     ∇
-
 
     ∇ R←UpdateScenarioList
       :Access public
@@ -393,38 +409,65 @@
     ∇
 
 
-    ∇ R←CallbackFn2  ⍝ handles callbacks of grid within list of a portfolios items (commodities)
+    :endsection
+
+    :section Charts
+    ∇ R←onChartSelect;res;dataX;i;pnts;code
       :Access public
-      :Select _event
-      :Case 'rowSelected'
-          ridx←Get'ridx'
-          ∘∘∘
+      →(_value≡,0)/0
+      res←3⊃CurrSCdata
+      dataX←1↓res[1;]
+      :If _value≡'_sum'
+          dataY←+⌿1 1↓res ⋄ series←'Sum'
+      :ElseIf _value≡'_cmp'  ⍝ comparison of scenarios
+          ∘∘∘write code or eliminate option∘∘∘
+      :Else ⍝ value is code of commodity
+          i←⍬⍴2⊃⎕VFI _value ⋄ dataY←1↓res[i;] ⋄ series←Commodities{⊃(⍺[;4],⍵)[⍺[;1]⍳⊂⍵]}1⊃res[i;]
+      :EndIf
+      pnts←'x' 'y'#.JSON.fromTable dataX,[1.5]dataY
+      pnts.x←1 #._JSS.JSDate¨pnts.x
+      pnts←1 0 1 #.JSON.fromAPL pnts
      
-      :Case 'endAdd'
-          name←_PageData.editcell.C1
-          port←0 4⍴0    ⍝ prototype of a portfolio
-          id←CatchAPIErrors(SessionGet'APIref').CallAPI'AddPortfolio'((SessionGet'UID')name port)
-          ListPortfolios⍪←id name ⎕TS 0 0
-          tab←#.JSON.fromTable'id' 'C1' 'C2' 'C3' 'C4'⍪ListPortfolios
-          tab.C2←1 #._JSS.JSDate¨tab.C2
-          tab2←1 0 1 #.JSON.fromAPL tab
-          R←Execute('$("#currPf").show();var gobj = $("#ListPortfolios").data("ejGrid");gobj.dataSource(',tab2,');')
      
-      :Case 'endDelete'
-          id←2⊃⎕VFI _PageData.editcell.id
-          CatchAPIErrors(SessionGet'APIref').CallAPI'DeletePortfolio'(id)
-      :Case 'endEdit'
-          (id name)←_PageData.editcell.(id C1) ⋄ id←2⊃⎕VFI id
-          CatchAPIErrors(SessionGet'APIref').CallAPI'UpdatePortfolio'(id name)
-          ListPortfolios←(ListPortfolios[;1]≠id)⌿ListPortfolios
-      :Else
-          ⎕←'No handler for event ',_event
-          ∘∘∘
-      :EndSelect
+      code←'$("#TheChart").ejChart( {'
+      code,←'title: {text: "',CurrPFname,' / ',CurrSCname,' / Simulated valuation"} , '
+      code,←'name: "Projected value",'
+      code,←'primaryYAxis: {title: {text: "Value ($)"}},'
+      code,←'primaryXAxis: {'
+      code,←'   valueType: "datetime",'
+      code,←'   labelFormat: "MMM/dd",'
+      code,←'   title: {text: "Date"},'
+      code,←'} ,'
+      code,←'series: [ { points: ',pnts,','
+      code,←'   enableAnimation: true,'
+      code,←'   type: "line", '
+      code,←'   tooltip: {visible: true } ,'
+      code,←'   name: "',series,'"'
+      code,←'  }]'
+      code,←'});'
+      R←Execute code
     ∇
+
+    :endsection
+
+    :section Settings
+    ∇ R←SaveTab3
+      :Access public
+        ⍝ just a plain vanilla function which you may adopt as required
+      ⎕←'name=',Get'name'
+      ⎕←'mail=',Get'mail'
+      ⎕←'Save that data!'
+      R←Execute'green'#._.jBox.Notice((New _.Icon'fa-check'),New _.span' Settings saved.')
+    ∇
+    :endsection
+
+
+
+
+    :section Tools
     ∇ R←GridId UpdateDataSourceWith arg;tab;dateFld
       :Access public
-    ⍝ transform a pfItem-List into the corresponding JS
+    ⍝ transform a pfItem-List into the corresponding JS-Variable and build the code to assign it to the dataSource-Param of the ejGrid-Obj.
       (table colnames dateCol)←arg defaultArgs(0 0⍴0)('')('')
       :If ~(⊂'id')∊colnames    ⍝ append id-column if not found in data
           table,←⍳1↑⍴table ⋄ colnames,←⊂'id'
@@ -439,111 +482,8 @@
       R←'var gobj = $("#',GridId,'").data("ejGrid");gobj.dataSource(',tab,');'
     ∇
 
-    ∇ R←UpdatePortfolioDetails
-      :Access public
-      ds←Get'dataSource'
-⍝ new items come with a field title_hidden and w/o id - so do not send back THAT array
-⍝ instead make sure data has the right format, save it and send back the updated pf:
-      ds←(⊂Commodities){i←⍺[;1]⍳⊂⍵.title ⋄ i>1↑⍴⍺:⍵ ⋄ ⍵.title←4⊃⍺[i;] ⋄ ⍵}¨ds  ⍝ replace code of stock with title
-      ds.purch←#.Dates.ParseISODate¨ds.purch
-      ds.(count price)←{2⊃⎕VFI⍕⍵}¨ds.(count price)  ⍝ paranoid? No, SF will accept error-prone input ("0,0" when decsep is "."), so better safe than sorry!
-     
-      port←↑ds.(title count price purch)  ⍝ back into array
-      port[;1]←{¯1↓(⌽∧\⌽⍵≠'(')/⍵}¨port[;1]  ⍝ extract stock code (last word enclosed in () - we do not explicity check for closing ) etc., but assume string will be correct
-      CatchAPIErrors(SessionGet'APIref').CallAPI'UpdatePortfolio'(CurrPFid CurrPFname port)   ⍝ write back to file
-     
-        ⍝ and update screen
-      port[;1]←(⊂Commodities){~(⊂⍵)∊⍺:⍵ ⋄ 2⊃⍺[⍺[;1]⍳⊂⍵;]}¨port[;1]
-      port,←0    ⍝ append a column for the Basis
-      port[;5]←×/port[;2 3]
-     
-      R←Execute'pfItemsGrid'UpdateDataSourceWith port('title' 'count' 'price' 'purch' 'val')('purch')
-     
-      ⍝ user may have added or deleted items, so we should update the count of commodities in the top grid:
-      ClientSummary←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
-      ListPortfolios←ClientSummary[;6 1 5 2 3]
-      tab←#.JSON.fromTable'id' 'name' 'lupd' 'cntComm' 'cntScen'⍪ListPortfolios
-      tab.lupd←1 #._JSS.JSDate¨tab.lupd
-      tab←1 0 1 #.JSON.fromAPL tab
-      R,←Execute('var gobj = $("#ListPortfolios").data("ejGrid");gobj.dataSource(',tab,');')
-     
-     
-    ∇
+    :endsection
 
-
-
-    ∇ R←UpdateChart;data
-      :Access public
-      sc←CatchAPIErrors(SessionGet'APIref').CallAPI('GetScenario'(⊃(//)⎕VFI _value))
-      var←opts←''
-      scData←3⊃sc
-      t←1↓⍳2⊃⍴scData
-      scData[1;t]←{⎕ML←1 ⋄ ∊' '~⍨⍕⍵,¨'-'}¨scData[1;t]
-      :For i :In 1↓⍳1↑⍴scData
-     
-          var,←'var chartData',(⍕i),'=',({#.JSON.(fromAPL fromTable'xy'⍪⍵)}⍉0 1↓scData[1,i;]),';'
-     
-          opts,←ScriptFollows #.Strings.subst('%i%'(⍕i))
-⍝    series: [{type: 'line' , dataSource: chartData%i% , xName: "x", yName: "y",}],
-      :EndFor
-     
-      R←var,'$("#chartContainer").ejChart({',opts,'});'
-      R←Execute R
-    ∇
-
-
-    ∇ R←UpdateScenarioTab id
-⍝ build content of scenario-tab for given portfolio-id
-      :Access public
-      cnt←New _.div    ⍝ content of scenario-tab
-      sc←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'id
-      :If 0=1↑⍴sc
-          cnt.Add'No scenarios defined yet'
-      :Else
-     
-      :EndIf
-      rnd←cnt.Render
-      rndHtml←rnd
-      R←'#maintabs_section_2'Replace rndHtml
-    ∇
-
-
-    ∇ R←onChartSelect
-      :Access public
-      res←3⊃CurrSCdata
-      dataX←1↓res[1;]
-      :If _value≡'_sum'
-          dataY←+⌿1 1↓res ⋄ series←'Sum'
-      :ElseIf _value≡'_cmp'  ⍝ comparison of scenarios
-          ∘∘∘
-      :Else ⍝ value is code of commodity
-          i←⍬⍴2⊃⎕VFI _value ⋄ dataY←1↓res[i;] ⋄ series←Commodities{⊃(⍺[;4],⍵)[⍺[;1]⍳⊂⍵]}1⊃res[i;]
-      :EndIf
-      pnts←'x' 'y'#.JSON.fromTable dataX,[1.5]dataY
-      pnts.x←1 #._JSS.JSDate¨pnts.x
-      pnts←1 0 1 #.JSON.fromAPL pnts
-     
-     
-      code←'$("#TheChart").ejChart( {'
-      code,←'primaryYAxis: {'
-      code,←'title: {text: "Value ($)"}'
-      code,←'},'
-      code,←'primaryXAxis: {'
-      code,←' valueType: "datetime",'
-      code,←'labelFormat: "MMM/dd",'
-      code,←'title: {text: "Date"},'
-      code,←'} ,'
-      code,←'series: [ { points: ',pnts,','
-      code,←' enableAnimation: true,'
-      code,←'type: "line", '
-      code,←' tooltip: {visible: true } ,'
-      code,←'name: "',series,'"'
-      code,←'}],'
-      code,←'title: {text: "',CurrPFname,' / ',CurrSCname,' / Simulated valuation"} , '
-      code,←' name: "Projected value"'
-      code,←'});'
-      R←Execute code
-    ∇
 
 
 :endclass
