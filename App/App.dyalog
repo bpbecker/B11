@@ -341,12 +341,14 @@
 
     ∇ (rc msg data)←BenchmarkScenario sid;scen;res;i;v1;v2;t;bmCodes;port
       :Access public shared
-    ⍝ calculates some "benchmarks" of a scenario (returns a 2 col-matrix with [;1]=Code  and [;2]=value, so it's easy to add)
+    ⍝ calculates some "benchmarks" of a scenario (returns a 3 col-matrix with [;1]=Code  [;2]=desc and [;3]=value, so it's easy to add)
     ⍝ Current Results are:
     ⍝   start_date, end_date, start_value, end_value - you may guess these ;-)
     ⍝   pct - percentage of change from end vs. start
     ⍝ Feel free to BYO ;-)
-    ⍝ As a convenience, use sid=¯1 to retrieve the list of calculated "benchmarks" as [;1] code and [;2]=label
+    ⍝ As a convenience (and to simplify initialisation of tables in UI), 
+    ⍝ use sid=¯1 to just retrieve the list of calculated "benchmarks" as [;1] code and [;2]=label.
+
       bmCodes←'start_date' 'end_date' 'start_value' 'end_value' 'pct'
       bmCodes,[1.5]←'Start Date' 'End Date' 'Start Value' 'End Value' '+/- %'
       (rc msg)←0 ''
@@ -370,8 +372,8 @@
                           t←⍬⍴⌽⍴res
                           v1←port[i;2]+.×1↓res[;2]
                           v2←port[i;2]+.×1↓res[;t]
-                          data←bmCodes[⍳2;1],[1.5]#.utils.fmtDate¨res[1;2,t]
-                          data⍪←bmCodes[3 4 5;1],[1.5]v1{⍺,⍵,100-⍨100×⍵÷⎕CT⌈⍺}v2
+                          data←bmCodes[⍳2;1 2],#.utils.fmtDate¨res[1;2,t]
+                          data⍪←bmCodes[3 4 5;1 2],v1{⍺,⍵,100-⍨100×⍵÷⎕CT⌈⍺}v2
                       :EndIf
                   :EndIf
               :EndIf
