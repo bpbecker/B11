@@ -222,16 +222,22 @@
       :EndHold
     ∇
 
-    ∇ (rc msg sid)←UpdateScenario(sid sname params);dir;ind;ptr
+    ∇ (rc msg sid)←UpdateScenario args;dir;ind;ptr;params;sname
       :Access public shared
+      (sid sname params)←args defaultArgs 0 ⎕NULL(0 0⍴0)   ⍝ treating all args as optional
       (rc msg)←0 ''
       :Hold 'scenario'
           ⎕FHOLD scenarioTn
           dir←getScenarioDir
           :If 0≠ind←dir[;1]#.utils.iotaz sid
-              params putScenarioParameters ptr←⊃dir[ind;3]
-              ⍬ putScenarioResults ptr
-              dir[ind;4 5]←sname ⎕TS
+              :If ~0∊¯1↑⍴params   ⍝ params optional
+                  params putScenarioParameters ptr←⊃dir[ind;3]
+                  ⍬ putScenarioResults ptr
+              :EndIf
+              :If sname≢⎕NULL
+                  dir[ind;4]←⊂sname
+              :EndIf
+              dir[ind;5]←⊂⎕TS
               putScenarioDir dir
           :Else
               (rc msg)←5 'scenario not found'
@@ -346,9 +352,9 @@
     ⍝   start_date, end_date, start_value, end_value - you may guess these ;-)
     ⍝   pct - percentage of change from end vs. start
     ⍝ Feel free to BYO ;-)
-    ⍝ As a convenience (and to simplify initialisation of tables in UI), 
+    ⍝ As a convenience (and to simplify initialisation of tables in UI),
     ⍝ use sid=¯1 to just retrieve the list of calculated "benchmarks" as [;1] code and [;2]=label.
-
+     
       bmCodes←'start_date' 'end_date' 'start_value' 'end_value' 'pct'
       bmCodes,[1.5]←'Start Date' 'End Date' 'Start Value' 'End Value' '+/- %'
       (rc msg)←0 ''
@@ -598,6 +604,11 @@
     :section Misc
 
     eis←{(,∘⊂)⍣((326∊⎕DR ⍵)<2>|≡⍵)⊢⍵} ⍝ Enclose if simple
+
+    ∇ da←args defaultArgs defaultvalues
+      :Access public shared
+      da←da,(⍴,da←eis args)↓defaultvalues
+    ∇
 
     :endsection
 
