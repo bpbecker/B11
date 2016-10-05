@@ -36,6 +36,7 @@
       :Access public
       Use'jBox'
       →PreFlightCheck↓0
+      Use'⍎index.js'
       ClientSummary←CatchAPIErrors(SessionGet'APIref').CallAPI('ClientSummary'(SessionGet'UID'))
       Commodities←CatchAPIErrors(SessionGet'APIref').CallAPI('GetCommodities')  ⍝ [;1]=id, [;2]=name, [;3]=price, [;4]=nice title
       Add _.Script('commtab'_JSS.JSData'code' 'name' 'price' 'title'⍪Commodities)
@@ -44,7 +45,7 @@
       maintabs.Titles←((_.Icon'fa-table')' Portfolios')((_.Icon'fa-magic')' Scenarios')((_.Icon'fa-bar-chart')' Charts')((_.Icon'fa-cog')' Settings')
       maintabs.Sections←MakeTab¨⍳4
 ⍝      'hiddenItemIndex'maintabs.Set 1 2 ⍝ would be nice, but SF can not make them visible again (show not working in CallbackFn1)
-⍝      remove comment and try this in console:
+⍝  try this in console:
 ⍝ $("#maintabs").data("ejTab").showItem(2);
 ⍝ the content is shown, but the tab stays hidden. I posted on SFs forum about that...
     ∇
@@ -135,6 +136,8 @@
           sc1Columns.textAlign←'Left' 'Left' 'Left'
           sc1Columns[1].(isIdentity isPrimaryKey visible)←_true _true _false
           sc1Columns[3].format←'{0:yy/MM/dd}'
+          sc1Columns[3].allowEditing←_false 
+          sc1Columns[2].editType←'⍎ej.Grid.EditingType.String'
      
           sc1grid←'#ScenarioGrid1'pfScen.Add _.ejGrid((0 3⍴0)sc1Columns)
      
@@ -174,8 +177,8 @@
           sc2Columns[1].(isIdentity isPrimaryKey visible)←_true _true _false
           sc2Columns[2].(editType format)←'⍎ej.Grid.EditingType.DatePicker' '{0:yy/MM/dd}'
           sc2Columns[2].defaultValue←'⍎new Date(',(¯1↓#.HtmlUtils.enlist(⍕¨0 ¯1 0+3↑⎕TS),¨','),')'
-          sc2Columns[3].(editType format editParams)←'numericedit' '{0:n0}' '⍎{decimalPlaces: 0, minValue: -2, maxValue: 2}'
-          sc2Columns[4].(editType format editParams)←'numericedit' '{0:n0}' '⍎{decimalPlaces: 0, minValue: 1, maxValue: 5}'
+          sc2Columns[3].(editType format editParams validationRules)← 'numericedit' '{0:n0}' '⍎{decimalPlaces: 0}' '⍎{number: true, range: [-2, 2]}'
+          sc2Columns[4].(editType format editParams validationRules)← 'numericedit' '{0:n0}' '⍎{decimalPlaces: 0}' '⍎{number: true, range: [1, 5]}'
      
      
           sc2grid←'#ScenarioGrid2'scParams.Add _.ejGrid((0 4⍴0)sc2Columns)
