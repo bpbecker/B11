@@ -609,6 +609,13 @@
       :Access public shared
       da←da,(⍴,da←eis args)↓defaultvalues
     ∇
+     
+     ∇ res←larg SillySample  rarg   
+     :access public shared
+     ⎕←'Sorry, but this function has a bug. Can you fix it?'
+     ∘∘∘
+     res←larg+rarg
+     ∇
 
     :endsection
 

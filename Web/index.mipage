@@ -475,7 +475,7 @@
       ⎕←'name=',Get'name'
       ⎕←'mail=',Get'mail'
       ⎕←'Save that data!'
-      R←Execute'green'#._.jBox.Notice((New _.Icon'fa-check'),New _.span' Settings saved.')
+      R←Execute Notice(2 ' Settings saved.')
     ∇
     :endsection
 

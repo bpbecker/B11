@@ -2,8 +2,9 @@
 ⍝∇:require =\..\..\APP\Files.dyalog
     ∇ R←CallAPI arg;exec;id;⎕TRAP
       ⎕TRAP←0 'S'  ⍝ disable all trapping in outer fns...
-⍝      ⎕SE.Dyalog.Utils.disp'CallAPI ⍵='arg
-      (id arg)←arg
+     ⍝ Poor man's logging of API-Calls - only useful during dev!
+     ⍝ ⎕SE.Dyalog.Utils.disp'CallAPI ⍵='arg
+      (id arg)←arg ⋄ arg←#.HtmlUtils.eis arg
       exec←((3=⍴⍴arg)/'(3⊃arg)'),('iAPI.',1⊃arg),(1<⍴arg)/' 2⊃arg'
       :Trap Trapping/0
           :With id
@@ -12,23 +13,22 @@
       :Else
           R←1(⎕DM)
       :EndTrap
-⍝      ⎕SE.Dyalog.Utils.disp'CallAPI R='R
+     ⍝ ⎕SE.Dyalog.Utils.disp'CallAPI R='R
     ∇
 
 
-    ∇ r←mode InitAPI(APIHomeDir API APIClassName APIType APIRequires APIToken sessionId trapping);loadRes;server;port;parms;wsid;runtime
+    ∇ r←mode InitAPI(APIHomeDir API APIClassName APIType APIRequires APIToken sessionId trapping);ns;loadRes;server;port;wsid;runtime;parms
       r←0
-      ⎕←'*** Initialising API NOW'
       :If mode≡'inSitu'   ⍝############################ inSitu #############################################⍝
           :If 2=⎕NC'#.Boot.AppRoot' ⋄ #.API.⎕CY #.Boot.AppRoot,'API-Link/API-Link' ⋄ :EndIf    ⍝ only needed in "pure" inSitu, APLProcess-inSitu has it alrdy (I just did not want to add a 3d type...)
                 ⍝ Set the scene for the API by getting namespaces it needs
           :For ns :In {⎕ML←0 ⋄ 1↓¨(1↓⍵=⍵[1])⊂1↓⍵}',',APIRequires
-              :if 0=#.⎕nc ns
+              :If 0=#.⎕NC ns
                   ⎕SE.SALT.Load APIHomeDir,ns,' -target=#'
-              :endif
+              :EndIf
           :EndFor
      
-        ⍝ Load configured API either from DWS or .dyalog-file (should do .dyapp, too - probably... [*Question*])
+        ⍝ Load configured API either from DWS or .dyalog-file (should do .dyapp, too - probably...later)
           :If '.dws'≡⎕SE.Dyalog.Utils.lcase 3⊃#.Files.SplitFilename API
               #.API.⎕CY API
               loadRes←#.API⍎APIClassName
@@ -39,7 +39,7 @@
           (ns←'#.API.',sessionId)⎕NS''
           #.API.Trapping←trapping
           :If APIType≡'Instance'            ⍝ when running API in instance-mode:
-              ⍎ns,'.iAPI←⎕NEW #.API⍎loadRes'⍝ --> create a new instance
+              ⍎ns,'.iAPI←⎕NEW #.API⍎loadRes'⍝ --> create a new instance (we trust that it will work out!)
           :ElseIf APIType≡'Shared'          ⍝ Shared methods OR namespace
               ⍎ns,'.iAPI←loadRes'           ⍝ --> a ref to the loaded "thing" will be enough :-)
           :Else
@@ -68,7 +68,7 @@
           :Else
               ⎕SE.Dyalog.Utils.display r
               ⎕←'→TryAgain   ⍝ if there is no client-connection...!'
-              ..No client!...
+              ∘∘∘No client!∘∘∘   ⍝ this should never happen - but IF it should happen, the → command might be sufficient!
           :EndIf
       :EndIf
     ∇
