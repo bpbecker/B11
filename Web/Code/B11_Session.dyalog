@@ -42,8 +42,6 @@
           :If server≡'inSitu'
               APIConnection←sessionId,'.inSitu'
               'inSitu'#.API.InitAPI(#.Boot.ms.Config.Application.(APIHomeDir API APIClassName APIType APIRequires),(APIToken sessionId Trapping))
-     
-     
           :Else
               r←(server port)#.API.InitAPI(#.Boot.ms.Config.Application.(APIHomeDir API APIClassName APIType APIRequires),(APIToken sessionId Trapping))
               :If 0=⊃r
@@ -62,7 +60,7 @@
           :If (#.HtmlUtils.eis arg)≡,⊂'∇CloseAPI∇'      ⍝ [*Question*] Explicit command to close API - or use class-destructor instead?
               r←0
               :If '.inSitu'≡¯7↑APIConnection
-                  #.API.⎕EX'sessionId'
+                  #.API.⎕EX sessionId
                   R←0
               :Else
                   R←RPCGet APIConnection('#.API.CallAPI'(sessionId arg))

@@ -60,7 +60,7 @@
       :Access Public Overridable
     ⍝ Handle the end of a session
       session.APIref.CallAPI'∇CloseAPI∇'   ⍝ internal command to close the API (kill the instance)
-      Config.Application.{IPsPorts[1⍳⍨IPsPorts[;⍳2]∧.≡⍵;3]←1}session.(APIServer port)    ⍝ release host & port
+      Config.Application.{IPsPorts[1⍳⍨IPsPorts[;⍳2]∧.≡⍵;3]←0}session.(APIServer port)    ⍝ release host & port
     ∇
 
     ∇ R←GetHostAndPort cfg

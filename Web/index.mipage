@@ -1,7 +1,6 @@
 ﻿:class index : B11_Regular
 
 ⍝ Issues:
-⍝ - unimportant detail: "Settings"-Tab: Position of jBox (-> MB)
 ⍝ - StackPanel.Horizontal←1: Layout
 ⍝   actually I would prefer to use floated divs, but they do not seem to float, as the parent container-div seems to prevent that. Adám?!
 ⍝ - (Scenarios: ejGrids area ends at bottom of screen, result-table may extend beyond that - seen twice, not sure how to repro, send a forum-msg to SF)
@@ -247,7 +246,6 @@
           R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
           R,←'.pfname'Replace row.name
           R,←Execute'$("#pfScen").show();$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'
-          R,←Execute'$("#scParams").hide();'
           R,←Execute'$("#currPf").show();'
      
      
@@ -256,13 +254,13 @@
           port←CatchAPIErrors(SessionGet'APIref').CallAPI'PortfolioPrototype'   ⍝ prototype of a portfolio
           id←CatchAPIErrors(SessionGet'APIref').CallAPI'AddPortfolio'((SessionGet'UID')data.name port)
           ListPortfolios⍪←id data.name ⎕TS 0 0
-          R←Execute'ListPortfolios'UpdateDataSourceWith(ListPortfolios)('id' 'name' 'lupd' 'cntComm' 'cntScen')('lupd')
+          R,←SetSCid 0  ⍝ no "current scenario" after adding pf
      
       :Case 'endDelete'
           id←(Get'editcell').id
           CatchAPIErrors(SessionGet'APIref').CallAPI'DeletePortfolio'(id)
           ListPortfolios←ListPortfolios{⍺[(⍳1↑⍴⍺)~⍺[;1]⍳⊂⍵;]}id
-          R←Execute'$("#currPf").hide();'
+          R,←Execute'$("#currPf").hide();'
           R,←SetSCid 0
      
       :Case 'endEdit'
