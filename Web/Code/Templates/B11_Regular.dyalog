@@ -52,7 +52,7 @@
      
       Add _.StyleSheet'/Styles/style.css'                  ⍝ add a link to our CSS stylesheet
      
-      Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.widgets.all.min.css')
+      Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.web.all.min.css')
       Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.theme.min.css')         ⍝ SF-Template
      
       ⍝ loading the font will only work when online (likely to be removed any way after Adáms styling...)

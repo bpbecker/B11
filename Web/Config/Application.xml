@@ -13,7 +13,7 @@
     -->
     <API>app.dyalog</API>
     <APIRequires>Files,Utils,Strings</APIRequires>   <!-- ns to be loaded for the API -->
-    <APIType>Class</APIType>  <!-- Namespace, Instance, Class (when using shared methods only)  -->
+    <APIType>Shared</APIType>  <!-- "Shared" uses one instance for all, "Instance" creates one instance of API per session - depends on your design! -->
     <APIClassName>App</APIClassName>   <!-- Name of class/namespace in API (relevant when API is in a DWS  -->
     
     <APIPath>#.App</APIPath>

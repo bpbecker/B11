@@ -2,7 +2,7 @@
 ⍝∇:require =\..\..\APP\Files.dyalog
     ∇ R←CallAPI arg;exec;id;⎕TRAP
       ⎕TRAP←0 'S'  ⍝ disable all trapping in outer fns...
-    ⍝  ⎕SE.Dyalog.Utils.disp'CallAPI ⍵='arg
+⍝      ⎕SE.Dyalog.Utils.disp'CallAPI ⍵='arg
       (id arg)←arg
       exec←((3=⍴⍴arg)/'(3⊃arg)'),('iAPI.',1⊃arg),(1<⍴arg)/' 2⊃arg'
       :Trap Trapping/0
@@ -12,7 +12,7 @@
       :Else
           R←1(⎕DM)
       :EndTrap
-    ⍝  ⎕SE.Dyalog.Utils.disp'CallAPI R='R
+⍝      ⎕SE.Dyalog.Utils.disp'CallAPI R='R
     ∇
 
 
@@ -40,8 +40,7 @@
           #.API.Trapping←trapping
           :If APIType≡'Instance'            ⍝ when running API in instance-mode:
               ⍎ns,'.iAPI←⎕NEW #.API⍎loadRes'⍝ --> create a new instance
-          :ElseIf APIType≡'Class'           ⍝ for Class (with shared methods)
-          :OrIf APIType≡'Namespace'         ⍝ or namespace
+          :ElseIf APIType≡'Shared'          ⍝ Shared methods OR namespace
               ⍎ns,'.iAPI←loadRes'           ⍝ --> a ref to the loaded "thing" will be enough :-)
           :Else
               ('Unknow APIType: ',APIType)⎕SIGNAL 11
