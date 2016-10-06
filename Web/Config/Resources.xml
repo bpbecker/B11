@@ -1,8 +1,2 @@
 <Resources>
-
-  <Resource>
-    <name>MyResource</name>
-    <script>Code/abc.js</script>
-  </Resource>
-  
 </Resources>
