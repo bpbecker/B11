@@ -82,13 +82,13 @@
           :If 0>⊃1⊃_Request.Session.showMsg   ⍝ there is an errormsg (or a warning) to show!
               OnLoad,←_.jBox.Modal(New _.Panel((,2⊃t)(t[1]⊃'warn' 'error')))
           :ElseIf 0<⊃t←1⊃_Request.Session.showMsg
-              opts←⎕ns'' ⋄ opts.color←('blue' 'green')[1⊃t] ⋄ opts.position←'⍎{x: "right", y: "top"}'
-              OnLoad,←opts _.jBox.Notice((#.HtmlElement.New _.Icon(t[1]⊃'fa-info-circle' 'fa-check')),2⊃t)
+              OnLoad,←Notice t
           :EndIf
           _Request.Session.showMsg←1↓_Request.Session.showMsg
       :EndWhile
       :If 0<2⊃⎕VFI⍕'0'SessionGet'UID'
-          lgOut←'#logout' '.primBtn e-recuredit floatRight'New _.button((New _.Icon'fa-sign-out'),'Log out')
+          lgOut←'#logout' '.primBtn floatRight'New _.button((New _.Icon'fa-sign-out'),'Log out')
+          ⍝lgOut←'#logout' '.primBtn e-recuredit floatRight'New _.button((New _.Icon'fa-sign-out'),'Log out')
           lgOut.On'click' 'Logout'
           hd,←lgOut
       :EndIf
@@ -112,6 +112,16 @@
      end:
     ∇
 
+∇ R←{opts}Notice content
+:access public
+⍝ get JS to display a notice
+⍝ content[1]= 1 (info), 2=success
+⍝ content[2]=message
+:if 0=⎕nc'opts' ⋄ opts←⎕ns''   ⋄ :endif
+:if 0=⎕nc'opts.color' ⋄ opts.color←('blue' 'green')[1⊃content] ⋄ :endif
+opts.position←'⍎{x: "right", y: "top"}'
+R←opts #._.jBox.Notice((#.HtmlElement.New _.Icon(content[1]⊃'fa-info-circle' 'fa-check')),2⊃content)
+∇
 
     ∇ R←Logout
       :Access Public
@@ -128,10 +138,10 @@
 
     ∇ R←CatchAPIErrors R
       :Access public
-⍝ simplistic mechanism to handle API-Errors and Warning:
-⍝ any return-code ≠0 will ⎕SIGNAL and get out of the stack,
-⍝ so the result returned in case of successfull operations
-⍝ will be the 3d element of the calls result.
+        ⍝ simplistic mechanism to handle API-Errors and Warning:
+        ⍝ any return-code ≠0 will ⎕SIGNAL and get out of the stack,
+        ⍝ so the result returned in case of successfull operations
+        ⍝ will be the 3d element of the calls result.
       :If 0=⊃R
           R←3⊃R
       :Else
