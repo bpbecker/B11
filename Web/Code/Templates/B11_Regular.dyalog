@@ -55,9 +55,6 @@
       Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.web.all.min.css')
       Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.theme.min.css')         ⍝ SF-Template
      
-    ⍝ loading the font will only work when online (likely to be removed any way after Adáms styling...)
-      Add _.link'href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet"'
-     
     ⍝ set the title display in the browser to the name of the application defined in Config/Server.xml
       Add _.title title ⍝ we do that on the individual MiPages!
      
