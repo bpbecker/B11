@@ -45,9 +45,9 @@
      
      
       Add _.StyleSheet'/Styles/reset.css'
-      ⍝⍝ FA, Panel & jBox required for showMsg to display stuff, potentially via callbacks. So make sure they are always there.
-      ⍝Use'faIcons'  ⍝ no longer needed, used on every single page anyway
-   ⍝ jBox is a different story, it may happen that a callback creates the first jBox ever. So let's explicitely load the resource:
+    ⍝ FA, Panel & jBox required for showMsg to display stuff, potentially via callbacks. So make sure they are always there.
+    ⍝ Use'faIcons'  ⍝ no longer needed, used on every single page anyway
+    ⍝ jBox is a different story, it may happen that a callback creates the first jBox ever. So let's explicitely load the resource:
       Use'jBox'
      
       Add _.StyleSheet'/Styles/style.css'                  ⍝ add a link to our CSS stylesheet
@@ -55,7 +55,7 @@
       Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.web.all.min.css')
       Add _.StyleSheet('/Syncfusion/assets/css/web/',theme,'/ej.theme.min.css')         ⍝ SF-Template
      
-      ⍝ loading the font will only work when online (likely to be removed any way after Adáms styling...)
+    ⍝ loading the font will only work when online (likely to be removed any way after Adáms styling...)
       Add _.link'href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet"'
      
     ⍝ set the title display in the browser to the name of the application defined in Config/Server.xml
@@ -96,7 +96,6 @@
       Body.Push hd
      
     ⍝ add the footer to the bottom of the page
-        ⍝  Add #.Files.GetText server.Config.Root,'Styles\footer.txt'
      
     ⍝ set the language for the page
       lang←server.Config.Lang ⍝ use the language specified in Server.xml
@@ -112,16 +111,16 @@
      end:
     ∇
 
-∇ R←{opts}Notice content
-:access public
+    ∇ R←{opts}Notice content
+      :Access public
 ⍝ get JS to display a notice
 ⍝ content[1]= 1 (info), 2=success
 ⍝ content[2]=message
-:if 0=⎕nc'opts' ⋄ opts←⎕ns''   ⋄ :endif
-:if 0=⎕nc'opts.color' ⋄ opts.color←('blue' 'green')[1⊃content] ⋄ :endif
-opts.position←'⍎{x: "right", y: "top"}'
-R←opts #._.jBox.Notice((#.HtmlElement.New _.Icon(content[1]⊃'fa-info-circle' 'fa-check')),2⊃content)
-∇
+      :If 0=⎕NC'opts' ⋄ opts←⎕NS'' ⋄ :EndIf
+      :If 0=⎕NC'opts.color' ⋄ opts.color←('blue' 'green')[1⊃content] ⋄ :EndIf
+      opts.position←'⍎{x: "right", y: "top"}'
+      R←opts #._.jBox.Notice((#.HtmlElement.New _.Icon(content[1]⊃'fa-info-circle' 'fa-check')),2⊃content)
+    ∇
 
     ∇ R←Logout
       :Access Public

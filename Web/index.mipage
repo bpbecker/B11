@@ -1,18 +1,5 @@
 ﻿:class index : B11_Regular
 
-⍝ Issues:
-⍝ - StackPanel.Horizontal←1: Layout
-⍝   actually I would prefer to use floated divs, but they do not seem to float, as the parent container-div seems to prevent that. Adám?!
-⍝ - (Scenarios: ejGrids area ends at bottom of screen, result-table may extend beyond that - seen twice, not sure how to repro, send a forum-msg to SF)
-⍝ - Scenarios: List of Scen: when adding/editing, the date-cell gets accessible. It seems there is no way to
-⍝    assign a readonly-type, it is only possible to reject edits of that cell. We do not need that, since
-⍝    we only process the name anyway and rewrite the table afterwards...
-⍝
-⍝ Next Steps:
-⍝ + MAJOR Clean up code needed: indent, localize variables, harmonize names, add Section, remove un-executed functions, re-organize functionality, :cases etc.
-
-
-
     :field public t3settings
     :field public ClientSummary
     :field public Commodities
@@ -39,10 +26,6 @@
       maintabs←'#maintabs'Add _.ejTab
       maintabs.Titles←((_.Icon'fa-table')' Portfolios')((_.Icon'fa-magic')' Scenarios')((_.Icon'fa-bar-chart')' Charts')((_.Icon'fa-cog')' Settings')
       maintabs.Sections←MakeTab¨⍳4
-⍝      'hiddenItemIndex'maintabs.Set 1 2 ⍝ would be nice, but SF can not make them visible again (show not working in CallbackFn1)
-⍝  try this in console:
-⍝ $("#maintabs").data("ejTab").showItem(2);
-⍝ the content is shown, but the tab stays hidden. I posted on SFs forum about that...
     ∇
 
     ∇ R←MakeTab i;pfl_titles;pflgrid;tbi;pfItemsGridData;pfc_titles;pfItemsGrid;pfsc;pflist;pfs;ig;sbtn;pfColumns;tab;tab2;cpf;chrt
@@ -96,7 +79,6 @@
           pfColumns.field←'title' 'purch' 'count' 'price' 'val' 'id'
           pfColumns.headerText←'Name (ID)' 'Purchase Date' 'Shares' 'Price' 'Value' 'id'
           pfColumns.textAlign←'Left' 'Right' 'Right' 'Right' 'Right' 'Right'
-  ⍝        pfColumns.width←↓'I2,<%>'⎕FMT 40 15 15 15 15    ⍝ Brian: that seems to have no effect?
           pfColumns[1].(editType dataSource)←'⍎ej.Grid.EditingType.Dropdown' '⍎commodities'
           pfColumns[1].editParams←'⍎{fields:{id:"text", text:"text", value:"text"}}'
           pfColumns[2].(editType format)←'⍎ej.Grid.EditingType.DatePicker' '{0:yy/MM/dd}'
@@ -144,8 +126,7 @@
 ⍝ But with the JS in the script below we can achieve that..
      
           Add _.style'.RunScenario:before  {    content:"\f04b"; font-family:FontAwesome;  }'
-⍝ unused:
-⍝   $("#ScenarioGrid1_RunScenario").attr("title","Run current scenario");
+     
           Add _.Script ScriptFollows
 ⍝ $(function(){
 ⍝   $("#ScenarioGrid1_RunScenario").attr("data-content","Run current scenario");
@@ -274,8 +255,6 @@
     ∇ R←UpdatePortfolioDetails;ds;port;tab
       :Access public
       ds←Get'dataSource'
-    ⍝ new items come with a field title_hidden and w/o id - so do not send back THAT array
-    ⍝ instead make sure data has the right format, save it and send back the updated pf:
       ds←(⊂Commodities){i←⍺[;1]⍳⊂⍵.title ⋄ i>1↑⍴⍺:⍵ ⋄ ⍵.title←4⊃⍺[i;] ⋄ ⍵}¨ds  ⍝ replace code of stock with title
       ds.purch←#.Dates.ParseISODate¨ds.purch
       ds.(count price)←{2⊃⎕VFI⍕⍵}¨ds.(count price)  ⍝ paranoid? No, SF will accept error-prone input ("0,0" when decsep is "."), so better safe than sorry!
@@ -284,7 +263,7 @@
       port[;1]←{¯1↓(⌽∧\⌽⍵≠'(')/⍵}¨port[;1]  ⍝ extract stock code (last word enclosed in () - we do not explicity check for closing ) etc., but assume string will be correct
       CatchAPIErrors(SessionGet'APIref').CallAPI'UpdatePortfolio'(CurrPFid CurrPFname port)   ⍝ write back to file
      
-    ⍝ and update screen
+    ⍝ update list of pfitems
       port[;1]←(⊂Commodities){~(⊂⍵)∊⍺:⍵ ⋄ 2⊃⍺[⍺[;1]⍳⊂⍵;]}¨port[;1]
       port,←0    ⍝ append a column for the Basis
       port[;5]←×/port[;2 3]
@@ -298,12 +277,9 @@
       tab.lupd←1 #._JSS.JSDate¨tab.lupd
       tab←1 0 1 #.JSON.fromAPL tab
       R,←Execute('var gobj = $("#ListPortfolios").data("ejGrid");gobj.dataSource(',tab,');')
-     
-     
     ∇
 
     :endsection
-
 
     :section Scenarios
     ∇ R←RunScenario;data
@@ -324,7 +300,6 @@
               R⍪←j[4 1],2
           :EndFor
       :EndFor
-     
     ∇
 
     ∇ R←ClickOnScenario;ridx;tab;cellAtts;pct;i;sc2Res;bm  ⍝ handles callbacks of grid with list of scenarios
@@ -358,15 +333,15 @@
           R,←Execute'$("#scResults").show();'
           R,←Execute'$("#chartContainer").show();'
           R,←Execute'$("#chartContainerInv").hide();'
-          Charts←1 2⍴'Comparison of scenarios' '_cmp'
-          Charts⍪←'Sum of commodities' '_sum'
+          ⍝ Charts←1 2⍴'Comparison of scenarios' '_cmp'
+          Charts←1 2⍴'++ Sum' '_sum'
           Charts⍪←(1↓sc2Res[;1]),[1.5]⍕¨1+⍳¯1+⍬⍴⍴sc2Res
           R,←chSelect.ReplaceOptions Charts
       :Else
           R,←Execute'$("#scResults").hide();'
           R,←Execute'$("#chartContainer").hide();'
           R,←Execute'$("#chartContainerInv").show();'
-          R,←chSelect.ReplaceOptions(1 2⍴'No scenario-results available' '0')
+          R,←Execute chSelect.ReplaceOptions(1 2⍴'No scenario-results available' '0')
       :EndIf
     ∇
 
@@ -374,9 +349,9 @@
       :Access public
       :Select _event
       :Case 'endAdd'
-           rec ← Get'editcell'
+          rec←Get'editcell'
           R←SetSCid CatchAPIErrors(SessionGet'APIref').CallAPI'AddScenario'(CurrPFid rec.name(0 3⍴0))
-          
+     
           ScenarioGrid1Data←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(CurrPFid)
      
           R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
@@ -385,19 +360,18 @@
           R,←Execute'ScenarioGrid2'UpdateDataSourceWith(0 3⍴0)('end' 'outlook' 'volatility')('end')
      
       :Case 'endEdit'
-           rec ← Get'editcell'
+          rec←Get'editcell'
           CatchAPIErrors(SessionGet'APIref').CallAPI'UpdateScenario'(rec.(id name))
           ScenarioGrid1Data←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(CurrPFid)
           R←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
      
-     :case 'endDelete'
+      :Case 'endDelete'
           CatchAPIErrors(SessionGet'APIref').CallAPI'DeleteScenario'(rec.id)
           ScenarioGrid1Data←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(CurrPFid)
      
           R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
           R,←Execute'$("#ScenarioGrid1_RunScenario").prop("disabled" , false);'
           R,←Execute'$("#scParams").hide();'
-     
       :EndSelect
     ∇
 
@@ -430,13 +404,11 @@
     :section Charts
     ∇ R←onChartSelect;res;dataX;i;pnts;code
       :Access public
-      →(_value≡,0)/0  
+      →(_value≡,0)/0
       res←3⊃CurrSCdata
       dataX←1↓res[1;]
       :If _value≡'_sum'
           dataY←+⌿1 1↓res ⋄ series←'Sum'
-      :ElseIf _value≡'_cmp'  ⍝ comparison of scenarios
-          ∘∘∘write code or eliminate option∘∘∘
       :Else ⍝ value is code of commodity
           i←⍬⍴2⊃⎕VFI _value ⋄ dataY←1↓res[i;] ⋄ series←Commodities{⊃(⍺[;4],⍵)[⍺[;1]⍳⊂⍵]}1⊃res[i;]
       :EndIf
@@ -444,23 +416,23 @@
       pnts.x←1 #._JSS.JSDate¨pnts.x
       pnts←1 0 1 #.JSON.fromAPL pnts
      
-     
-      code←'$("#TheChart").ejChart( {'
-      code,←'title: {text: "',CurrPFname,' / ',CurrSCname,' / Simulated valuation"} , '
-      code,←'name: "Projected value",'
-      code,←'primaryYAxis: {title: {text: "Value ($)"}},'
-      code,←'primaryXAxis: {'
-      code,←'   valueType: "datetime",'
-      code,←'   labelFormat: "MMM/dd",'
-      code,←'   title: {text: "Date"},'
-      code,←'} ,'
-      code,←'series: [ { points: ',pnts,','
-      code,←'   enableAnimation: true,'
-      code,←'   type: "line", '
-      code,←'   tooltip: {visible: true } ,'
-      code,←'   name: "',series,'"'
-      code,←'  }]'
-      code,←'});'
+      code←('%pnts%'pnts)('%series%'series)('%CurrPFname%'CurrPFname)('%CurrSCname%'CurrSCname)#.HtmlElement.Subst ScriptFollows
+      ⍝ $("#TheChart").ejChart( {
+      ⍝ title: {text: "%CurrPFname% / %CurrSCname% / Simulated valuation"} ,
+      ⍝ name: "Projected value",
+      ⍝ primaryYAxis: {title: {text: "Value ($)"}},
+      ⍝ primaryXAxis: {
+      ⍝     valueType: "datetime",
+      ⍝     labelFormat: "MMM/dd",
+      ⍝     title: {text: "Date"},
+      ⍝ } ,
+      ⍝ series: [ { points: %pnts% ,
+      ⍝     enableAnimation: true,
+      ⍝     type: "line",
+      ⍝     tooltip: {visible: true } ,
+      ⍝     name: "%series%"
+      ⍝     }]
+      ⍝ });
       R←Execute code
     ∇
 
@@ -477,14 +449,12 @@
     ∇
     :endsection
 
-
-
-
     :section Tools
-    ∇ R←GridId UpdateDataSourceWith arg;tab;dateFld;table;colnames;dateCol
+    ∇ R←larg UpdateDataSourceWith arg;tab;dateFld;table;colnames;dateCol
       :Access public
     ⍝ transform a pfItem-List into the corresponding JS-Variable and build the code to assign it to the dataSource-Param of the ejGrid-Obj.
       (table colnames dateCol)←arg defaultArgs(0 0⍴0)('')('')
+      (GridId objType)←larg defaultArgs'' 'ejGrid'
       :If ~(⊂'id')∊colnames    ⍝ append id-column if not found in data
           table,←⍳1↑⍴table ⋄ colnames,←⊂'id'
       :EndIf
@@ -495,11 +465,7 @@
           ⍎'tab.',dateCol,'←dateFld'
       :EndIf
       tab←1 0 1 #.JSON.fromAPL tab
-      R←'var gobj = $("#',GridId,'").data("ejGrid");gobj.dataSource(',tab,');'
+      R←'var gobj = $("#',GridId,'").data("',objType,'");gobj.dataSource(',tab,');'
     ∇
-
     :endsection
-
-
-
 :endclass
