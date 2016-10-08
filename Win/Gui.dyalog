@@ -36,11 +36,12 @@
       'frm.tabs.setBtn'⎕WC'TabButton'('Caption' '    Settings      ')
      
  ⍝ Portfolios Tab
-      'frm.tabs.portTab'⎕WC'SubForm'('TabObj' 'frm.tabc.portbtn')
+      'frm.tabs.portTab'⎕WC'SubForm'('TabObj' 'frm.tabs.portBtn')
      
  ⍝ Portfolios Summary Grid
       'frm.tabs.portTab.lblPort'⎕WC'Label'('Caption' 'Your portfolios')('FontObj' 'Bold')('Posn'(15 10))('Size'(18 200))
-      'frm.tabs.portTab.portGrid'⎕WC'Grid'('Posn'(50 10))('HScroll' 0)('VScroll' ¯1)('Event' 'CellDblClick' 'checkClickPortfolio')('Event' 'CellChanged' 'updatePortfolio')('Event' 'CellUp' 'checkDeletePortfolio')
+      'frm.tabs.portTab.portGrid'⎕WC'Grid'('Posn'(50 10))('HScroll' 0)('VScroll' ¯1)('Event' 'CellChanged' 'updatePortfolio')('Event' 'CellUp' 'checkClickPortfolio')
+⍝      'frm.tabs.portTab.portGrid'⎕WC'Grid'('Posn'(50 10))('HScroll' 0)('VScroll' ¯1)('Event' 'CellDblClick' 'checkClickPortfolio')('Event' 'CellChanged' 'updatePortfolio')('Event' 'CellUp' 'checkPortfolioCellUp')
       'frm.tabs.portTab.portGrid.editPortName'⎕WC'Edit'
       'frm.tabs.portTab.portGrid.lblDelete'⎕WC'Label'('Justify' 'center')
       frm.tabs.portTab.portGrid.TitleWidth←0
@@ -68,11 +69,26 @@
       'frm.tabs.portTab.btnAddCommodity'⎕WC'Button'('Caption' 'Add commodity')('Size'(20 150))('Posn'(15,width+610-150))('Event' 'Select' 'addCommodity')('Visible' 0)
      
      
+⍝ Scenarios Tab
+      'frm.tabs.scenTab'⎕WC'SubForm'('TabObj' 'frm.tabs.scenBtn')
+⍝ Scenarios Summary Grid
+      'frm.tabs.scenTab.lblScen'⎕WC'Label'('Caption' 'Scenarios for ')('FontObj' 'Bold')('Posn'(15 10))('Size'(18 150))
+      'frm.tabs.scenTab.comboScen'⎕WC'Combo'(,⊂'-- none selected --')('Posn'(15 175))('Size' (18 100))('Event' 'Select' 'loadScenarios')
+      'frm.tabs.scenTab.scenGrid'⎕WC'Grid'('Posn'(50 10))('HScroll' 0)('VScroll' ¯1)('Event' 'CellDblClick' 'checkClickScenario')('Event' 'CellChanged' 'updateScenario')('Event' 'CellUp' 'checkScenarioCellUp')
+      'frm.tabs.scenTab.scenGrid.editScenName'⎕WC'Edit'
+      'frm.tabs.scenTab.scenGrid.lblDelete'⎕WC'Label'('Justify' 'center')
+      'frm.tabs.scenTab.scenGrid.lblRun'⎕WC'Label'('Justify' 'center')
+      frm.tabs.scenTab.scenGrid.TitleWidth←0
+      frm.tabs.scenTab.scenGrid.ColTitles←'Scenario' 'Last Update' 'Delete' 'Run'
+      frm.tabs.scenTab.scenGrid.Size[2]←width←2++/frm.tabs.scenTab.scenGrid.CellWidths←120 120 50 50
+      frm.tabs.scenTab.scenGrid.Input←'' 'frm.tabs.scenTab.scenGrid.editScenName' 'frm.tabs.scenTab.scenGrid.lblDelete' 'frm.tabs.scenTab.scenGrid.lblRun'
+      frm.tabs.scenTab.scenGrid.FCol←(0 0 0)(0 0 0)(255 0 0)(0 0 0)
+      'frm.tabs.scenTab.btnAddScen'⎕WC'Button'('Caption' 'Add new scenario')('Size'(20 100))('Posn'(15,width+10-100))('Event' 'Select' 'addScenario')
       →0
      
      
      
-      sub2←frm.tabs.⎕NEW'SubForm'(,⊂'TabObj'tab2)
+     
      
       sub3←frm.tabs.⎕NEW'SubForm'(,⊂'TabObj'tab3)
      
@@ -100,14 +116,31 @@
           frm.tabs.portTab.portGrid.Values←0 6⍴'' '' '' 0 0 ''
       :EndIf
       frm.tabs.portTab.portGrid.(CellTypes←(⍴Values)⍴2 1 1 1 1 3)
+      frm.tabs.scenTab.comboScen.Items←(⊂'-- none selected --'),Portfolios[;1]
     ∇
 
     ∇ checkClickPortfolio msg;row;col
       (row col)←msg[7 8]
-      showPortfolio Portfolios[row;6]
+      :If row≠¯1
+          :Select col
+          :Case 1 ⍝ edit name
+          :CaseList 2 3 4 5 ⍝ show detail
+              showPortfolio Portfolios[row;6]
+              :If col=5 ⍝ show scenarios
+                  showScenarios Pid
+              :EndIf
+          :Case 6 ⍝ delete
+              :If 'OK'≡'Warn'MsgBox'Delete portfolio "',(⊃Portfolios[row;1]),'"?'
+                  {}#.App.DeletePortfolio Portfolios[row;6]
+                  LoadPortfolios
+                  ClearPortfolioDetails
+              :EndIf
+          :EndSelect
+     
+      :EndIf
     ∇
 
-    ∇ r←checkDeletePortfolio msg;row;col
+    ∇ r←checkPortfolio msg;row;col
       (row col)←msg[7 8]
       :If ¯1≠row   ⍝ didn't click the column header?
       :AndIf 6=col ⍝ clicked the Delete column?
@@ -126,7 +159,7 @@
     ∇
 
     ∇ addPortfolio
-      {}#.App.AddPortfolio ClientID'New Portfolio'(3⊃#.App.PortfolioPrototype)
+      {}#.App.AddPortfolio ClientID'New Portfolio' ⍬
       LoadPortfolios
       ClearPortfolioDetails
     ∇
@@ -175,10 +208,16 @@
       frm.tabs.portTab.lblPostDetails.Visible←0
       frm.tabs.portTab.portDetails.Visible←0
       frm.tabs.portTab.btnAddCommodity.Visible←0
+      ResetScenario
+    ∇
+
+    ∇ loadPortfolio pid
+      Pid←pid
+      (Portfolio Details)←3⊃#.App.GetPortfolio pid
     ∇
 
     ∇ showPortfolio pid
-      (Portfolio Details)←3⊃#.App.GetPortfolio pid
+      loadPortfolio pid
       :If ~0∊⍴Details
           PortfolioDetails←Commodities[Commodities[;1]⍳Details[;1];4],(⌊#.utils.DateToIDN¨Details[;4]),({⍵,×/⍵}Details[;2 3]),⎕UCS 10007
       :Else
