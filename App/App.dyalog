@@ -11,18 +11,24 @@
     :include Test
     :section Initialization and Documentation
 
-    DataDir←0
-
     ∇ (rc msg data)←Init dir
+      ⍝ Initializes the application interface
+      ⍝ Arguments:
+      ⍝  dir  - the folder containing the "database", '' → defaults to same folder as workspace
+      ⍝ Result:
+      ⍝  data - ''
       :Access public shared
-      ⍝ dir is the folder containing the "database", '' → defaults to same folder as workspace
       :If 0∊⍴dir ⋄ dir←'/\'#.utils.cutLast ⎕WSID ⋄ :EndIf
       ⎕FUNTIE ⎕FNUMS
-      :If 0≡DataDir ⋄ DataDir←dir ⋄ :EndIf
-      clientTn portfolioTn commodityTn scenarioTn←DataDir∘{(⍺,⍵)⎕FSTIE 0}¨'clients' 'portfolios' 'commodities' 'scenarios'
-      rc←0
       data←''
-      msg←'Initialized from folder ',dir
+      :Trap 0
+          clientTn portfolioTn commodityTn scenarioTn←dir∘{(⍺,⍵)⎕FSTIE 0}¨'clients' 'portfolios' 'commodities' 'scenarios'
+          rc←0
+          msg←'Initialized from folder ',dir
+      :Else
+          rc←1
+          msg←'unable to initialize due to ',∊(⎕UCS 13),¨⎕DM
+      :EndTrap
     ∇
 
     ∇ r←Documentation
@@ -30,6 +36,7 @@
       {}Init''
       {}⎕SE.UCMD'box on'
       r←(↓⎕FNAMES)⍪⍉⍪⎕FREAD¨⎕FNUMS,¨1
+      ∘∘∘
     ∇
 
     :endsection
@@ -37,6 +44,16 @@
     :section Add Data
 
     ∇ (rc msg cid)←AddClient(name email userid pwd salt);dir
+    ⍝ Add a new client
+    ⍝ Arguments:
+    ⍝  name   - user name
+    ⍝  email  - user email address
+    ⍝  userid - user login userid
+    ⍝  pwd    - user (hashed) password
+    ⍝  salt   - random salt used to hash the user password
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 1 userid error, 2 email error, 3 name error
+    ⍝  cid    - the newly assigned customer ID or 0 if an error
       :Access public shared
      ⍝ rc= 1 userid in use, 2 email in use
       (rc msg cid)←0 '' 0
@@ -57,12 +74,29 @@
     ∇
 
     ∇ (rc msg pid)←AddPortfolio(cid pname port);dir;ptr
+    ⍝ Add a new portfolio for a client
+    ⍝ Arguments:
+    ⍝  cid    - client id
+    ⍝  pname  - portfolio name
+    ⍝  port   - ⍬ or a portfolio defintion
+    ⍝           If ⍬, an empty portfolio prototype will be added
+    ⍝           Otherwise, it's a matrix of
+    ⍝           [;1] commodity id
+    ⍝           [;2] quantity
+    ⍝           [;3] purchase price
+    ⍝           [;4] purchase date
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 8 client not found
+    ⍝  pid    - the newly assigned portfolio ID or 0 if an error
       :Access public shared
-      (rc msg)←0 ''
+      (rc msg pid)←0 '' 0
       :Hold 'client' 'portfolio'
           ⎕FHOLD clientTn,portfolioTn
           :If ~cid∊getClientDir[;1]
               (rc msg)←8 'client id not found' ⋄ →Done
+          :EndIf
+          :If 0∊⍴pname
+              (rc msg)←9 'empty portfolio name' ⋄ →Done
           :EndIf
           dir←getPortfolioDir
           pid←nextPortfolioId
@@ -74,10 +108,27 @@
     ∇
 
     ∇ (rc msg sid)←AddScenario(pid sname params);sdir;sptr
+    ⍝ Add a new scenario for a portfolio
+    ⍝ Arguments:
+    ⍝  pid    - postfolio id
+    ⍝  sname  - scenario name
+    ⍝  params - scenario parameters
+    ⍝           [;1] end date
+    ⍝           [;2] outlook (¯2 to 2)
+    ⍝           [;3] volatility (1 to 5)
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 10 portfolio not found
+    ⍝  sid    - the newly assigned scenario ID or 0 if an error
       :Access public shared
-      (rc msg)←0 ''
+      (rc msg sid)←0 '' 0
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
+          :If ~pid∊getPortfolioDir[;1]
+              (rc msg)←10 'portfolio id not found' ⋄ →Done
+          :EndIf
+          :If 0∊⍴sname
+              (rc msg)←9 'empty scenario name' ⋄ →Done
+          :EndIf
           sdir←getScenarioDir
           sid←nextScenarioId
           sptr←nextScenarioSlot sdir
@@ -88,35 +139,44 @@
     ∇
 
     ∇ r←PortfolioPrototype
-      :Access public shared
       r←0 ''(0 4⍴'' 0 0 ⎕TS)
     ∇
-
 
     :endsection
 
     :section Delete Data
 
-    ∇ (rc msg data)←DeleteClient cid;pdir;mask;portfolios;p;sdir;s;cdir;cmask
+    ∇ (rc msg cid)←DeleteClient cid;pdir;mask;portfolios;p;sdir;s;cdir;cmask
+    ⍝ Deleta a client (and the client's portfolios and scenarios)
+    ⍝ Arguments:
+    ⍝  cid    - client id
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 8 client not found
+    ⍝  cid    - client id
       :Access public shared
-      (rc msg data)←0 ''cid
+      (rc msg)←0 ''
       :Hold 'client' 'portfolio' 'scenario'
           ⎕FHOLD clientTn,portfolioTn,scenarioTn
-     
           cdir←getClientDir
           :If ∨/cmask←cid=cdir[;1]
               DeletePortfolioScenarios DeleteClientPortfolios clientId
               putClientDir cdir⌿⍨~cmask
           :Else
-              (rc msg)←¯1 'client not found'
+              (rc msg)←8 'client not found'
           :EndIf
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
 
-    ∇ (rc msg data)←DeletePortfolio pid;dir;mask
+    ∇ (rc msg pid)←DeletePortfolio pid;dir;mask
+    ⍝ Deleta a portfolio (and the scenarios for the portfolio)
+    ⍝ Arguments:
+    ⍝  pid    - portfolio id
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 10 portfolio not found
+    ⍝  pid    - portfolio id
       :Access public shared
-      (rc msg data)←0 ''pid
+      (rc msg)←0 ''
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
           dir←getPortfolioDir
@@ -125,7 +185,7 @@
               ⍬ putPortfolio mask/dir[;3]
               putPortfolioDir(~mask)⌿dir
           :Else
-              (rc msg)←¯2 'portfolio not found'
+              (rc msg)←10 'portfolio not found'
           :EndIf
      Done:⎕FHOLD ⍬
       :EndHold
@@ -144,9 +204,15 @@
       r←mask/pdir[;1] ⍝ return deleted portfolio ids
     ∇
 
-    ∇ (rc msg data)←DeleteScenario sid;sdir;mask;ptr
+    ∇ (rc msg sid)←DeleteScenario sid;sdir;mask;ptr
+    ⍝ Deleta a scenario
+    ⍝ Arguments:
+    ⍝  sid    - scenario id
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 12 scenario not found
+    ⍝  sid    - scenraio id
       :Access public shared
-      (rc msg data)←0 ''sid
+      (rc msg)←0 ''
       :Hold 'scenario'
           ⎕FHOLD scenarioTn
           sdir←getScenarioDir
@@ -157,7 +223,7 @@
               :EndFor
               putScenarioDir(~mask)⌿sdir
           :Else
-              (rc msg)←¯3 'scenario not found'
+              (rc msg)←12 'scenario not found'
           :EndIf
      Done:⎕FHOLD ⍬
       :EndHold
@@ -179,32 +245,57 @@
 
     :section Update Data
 
-    ∇ (rc msg data)←UpdateClient(cid name email uid pwd salt);dir;ind;inds
+    ∇ (rc msg)←UpdateClient(cid name email userid pwd salt);dir;ind;inds
+    ⍝ Update client
+    ⍝ Arguments:
+    ⍝  cid    - client id
+    ⍝  name   - user name
+    ⍝  email  - user email address
+    ⍝  userid - user login userid
+    ⍝  pwd    - user (hashed) password
+    ⍝  salt   - random salt used to hash the user password
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 1 userid error, 2 email error, 8 client not found
+    ⍝  cid    - client id
       :Access public shared
-      (rc msg data)←0 ''cid
+      (rc msg)←0 ''
       :Hold 'client'
           ⎕FHOLD clientTn
           dir←getClientDir
-          (rc msg)←1 ''
           :If 0≠ind←dir[;1]#.utils.iotaz cid
               inds←ind~⍨⍳⊃⍴dir
               :If dir[inds;4]∊⍨⊂email ⋄ (rc msg)←1 'Userid in use' ⋄ →Done ⋄ :EndIf
               :If dir[inds;3]∊⍨⊂email ⋄ (rc msg)←2 'Email in use' ⋄ →Done ⋄ :EndIf
-              dir[ind;2 3 4 5 6]{0∊⍴⍵:⍺ ⋄ ⍵}←name email uid pwd salt
+              dir[ind;2 3 4 5 6]{0∊⍴⍵:⍺ ⋄ ⍵}←name email userid pwd salt
               putClientDir dir
           :Else
-              (rc msg)←3 'client not found'
+              (rc msg)←8 'client not found'
           :EndIf
      Done:⎕FHOLD ⍬
       :EndHold
     ∇
 
-    ∇ (rc msg pid)←UpdatePortfolio arg;dir;ind;port;pname
+    ∇ (rc msg pid)←UpdatePortfolio args;dir;ind;port;pname
+    ⍝ Update portfolio for a client
+    ⍝ Arguments:
+    ⍝  cid    - client id
+    ⍝  pname  - portfolio name
+    ⍝  port   - portfolio defintion
+    ⍝           [;1] commodity id
+    ⍝           [;2] quantity
+    ⍝           [;3] purchase price
+    ⍝           [;4] purchase date
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 10 portfolio not found
+    ⍝  pid    - portfolio id
       :Access public shared
       (rc msg)←0 ''
-      (pid pname port)←3↑arg
+      (pid pname port)←args defaultArgs 0 ''⍬
       :Hold 'portfolio' 'scenario'
           ⎕FHOLD portfolioTn,scenarioTn
+          :If 0∊⍴pname
+              (rc msg)←9 'empty portfolio name' ⋄ →Done
+          :EndIf
           dir←getPortfolioDir
           :If 0≠ind←dir[;1]#.utils.iotaz pid
               dir[ind;4]←⊂pname
@@ -223,11 +314,25 @@
     ∇
 
     ∇ (rc msg sid)←UpdateScenario args;dir;ind;ptr;params;sname
+    ⍝ Update scenario for a portfolio
+    ⍝ Arguments:
+    ⍝  sid    - scenario id
+    ⍝  sname  - scenario name
+    ⍝  params - scenario parameters
+    ⍝           [;1] end date
+    ⍝           [;2] outlook (¯2 to 2)
+    ⍝           [;3] volatility (1 to 5)
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 5 scenario not found, 11 empty scenario name
+    ⍝  pid    - portfolio id
       :Access public shared
       (sid sname params)←args defaultArgs 0 ⎕NULL(0 0⍴0)   ⍝ treating all args as optional
       (rc msg)←0 ''
       :Hold 'scenario'
           ⎕FHOLD scenarioTn
+          :If 0∊⍴sname
+              (rc msg)←11 'empty scenario name' ⋄ →Done
+          :EndIf     
           dir←getScenarioDir
           :If 0≠ind←dir[;1]#.utils.iotaz sid
               :If ~0∊¯1↑⍴params   ⍝ params optional
@@ -250,8 +355,20 @@
 
     :section Reporting
 
-    ∇ (rc msg data)←ClientSummary cid;pdir;sdir
-         ⍝ returns [;1] portfolio name [;2] number commodities [;3] number scenarios [;4] created [;5] last update [;6] pid [;7] pdet
+    ∇ (rc msg data)←ClientSummary cid;pdir;sdir 
+    ⍝ Get portfolio level summary for a client
+    ⍝ Arguments:
+    ⍝  cid    - client id
+    ⍝ Result:
+    ⍝  rc     - 0 no error, 3 client id not found
+    ⍝  data   - cid if error, otherwise
+    ⍝           matrix of
+    ⍝           [;1] portfolio name 
+    ⍝           [;2] number commodities 
+    ⍝           [;3] number scenarios 
+    ⍝           [;4] created 
+    ⍝           [;5] last update 
+    ⍝           [;6] portfolio id 
       :Access public shared
       (rc msg data)←0 ''(0 7⍴'' 0 0 '' '')
       :Hold 'portfolio' 'scenario'
@@ -265,8 +382,7 @@
      Done:⎕FHOLD ⍬
       :EndHold
       :If ~0∊⍴pdir
-          data←pdir[;4 5],({¯1+≢⍵}⌸pdir[;1],sdir[;2]),pdir[;6 7]
-          data,←pdir[;1 3]  ⍝ MBaas: added pid & details
+          data←pdir[;4 5],({¯1+≢⍵}⌸pdir[;1],sdir[;2]),pdir[;6 7 1]
       :EndIf
     ∇
 
@@ -606,16 +722,15 @@
     eis←{(,∘⊂)⍣((326∊⎕DR ⍵)<2>|≡⍵)⊢⍵} ⍝ Enclose if simple
 
     ∇ da←args defaultArgs defaultvalues
-      :Access public shared
       da←da,(⍴,da←eis args)↓defaultvalues
     ∇
-     
-     ∇ res←larg SillySample  rarg   
-     :access public shared
-     ⎕←'Sorry, but this function has a bug. Can you fix it?'
-     ∘∘∘
-     res←larg+rarg
-     ∇
+
+    ∇ res←larg SillySample rarg
+      :Access public shared
+      ⎕←'Sorry, but this function has a bug. Can you fix it?'
+      ∘∘∘
+      res←larg+rarg
+    ∇
 
     :endsection
 
