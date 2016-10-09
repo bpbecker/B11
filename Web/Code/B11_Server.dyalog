@@ -6,7 +6,7 @@
       :Access public  Override
       #.Boot.ms.Config.Application←#.Boot.ReadConfiguration'Application'
       InitAPIServerCfg #.Boot.ms.Config.Application
-      #.Crypt.Init ''
+      #.Crypt.Init''
     ∇
 
     ∇ InitAPIServerCfg ref;t;ns1
@@ -39,7 +39,7 @@
      ⍝ also signals an error if path is not laid (does not exist)
       path,←(~∨/'\/'∊¯1↑path)/'/'
       :If './'≡2↑path
-          path←1⊃1 ⎕NPARTS #.Boot.AppRoot,2↓path
+          path←1⊃#.Files.SplitFilename #.Boot.AppRoot,2↓path
       :EndIf
       ('Path <',path,'> does not exist!')⎕SIGNAL 22/⍨~#.Files.DirExists path
     ∇
