@@ -4,7 +4,7 @@
       ⎕TRAP←0 'S'  ⍝ disable all trapping in outer fns...
      ⍝ Poor man's logging of API-Calls - only useful during dev!
      ⍝ ⎕SE.Dyalog.Utils.disp'CallAPI ⍵='arg
-      (id arg)←arg ⋄ arg←#.HtmlUtils.eis arg
+      (id arg)←arg ⋄ arg←{⎕ml←1 ⋄ 1=≡⍵: ⊂⍵ ⋄ ⍵} arg
       exec←((3=⍴⍴arg)/'(3⊃arg)'),('iAPI.',1⊃arg),(1<⍴arg)/' 2⊃arg'
       :Trap Trapping/0
           :With id

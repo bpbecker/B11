@@ -33,7 +33,7 @@
       :Select i
       :Case 1
           tabContent←R.Add _.div
-          ypf←'style="float:left;"'tabContent.Add _.div
+          ypf←'.floatingDiv' tabContent.Add _.div
           :If 0∊⍴ClientSummary
               ListPortfolios←0 5⍴''
           :Else
@@ -61,7 +61,6 @@
           pflgrid.On'rowSelected' 'CallbackFn1'(('row' 'argument' 'data'))
           pflgrid.On('endAdd' 'endEdit' 'endDelete')'CallbackFn1'('editcell' 'argument' 'data')
           '#pfltemplate' 'type="text/template"'Add _.script ScriptFollows
-     
 ⍝   <table>
 ⍝       <tr>
 ⍝           <td>Name of portfolio<input id="id" name="id" value="{{:id}}" type="hidden"  /></td>
@@ -71,7 +70,7 @@
 ⍝       </tr>
 ⍝   </table>
      
-          cpf←'#currPf' 'style="display:none;float:left;"'tabContent.Add _.div
+          cpf←'#currPf' '.floatingDiv hidden' tabContent.Add _.div
           '#h2pfc'cpf.Add _.h2('Listing of portfolio '('.pfname'New _.span))
      
           pfItemsGridData←0 6⍴' '
@@ -104,7 +103,7 @@
      
       :Case 2
 ⍝----------- Scenarios for current pf ----------------------------------
-          pfScen←'#pfScen' 'style=display:none;float:left;'R.Add _.div
+          pfScen←'#pfScen' '.floatingDiv hidden' R.Add _.div
           pfScen.Add _.h2('Scenarios for portfolio '('.pfname'New _.span))
           sc1Columns←⎕NS¨3⍴⊂''
           sc1Columns.field←'id' 'name' 'lupd'
@@ -139,7 +138,7 @@
           Add _.Script'$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'   ⍝ disabled by default
      
 ⍝------------ params of scenario -----------------------------------------
-          scParams←'#scParams' 'style="display:none;float:left;"'R.Add _.div   ⍝ hide as long as we have none...
+          scParams←'#scParams' '.floatingDiv hidden' R.Add _.div   ⍝ hide as long as we have none...
           scParams.Add _.h2('Parameters of scenario '('.scname'New _.span))
           sc2Columns←⎕NS¨4⍴⊂''
           sc2Columns.field←'id' 'end' 'outlook' 'volatility'
@@ -162,7 +161,7 @@
      
      
 ⍝-------------- results of scenario --------------------------------------
-          scResults←'#scResults' 'style="display:none;float:left;"'R.Add _.div   ⍝ hide as long as we have none...
+          scResults←'#scResults' '.floatingDiv hidden' R.Add _.div   ⍝ hide as long as we have none...
      
           scResults.Add _.h2('Results of scenario '('.scname'New _.span))
           scResults.Add _.h3'Benchmark'
@@ -226,8 +225,10 @@
           R←Execute'pfItemsGrid'UpdateDataSourceWith pfItemsGridData('title' 'purch' 'count' 'price' 'val')('purch')
           R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
           R,←'.pfname'Replace row.name
-          R,←Execute'$("#pfScen").show();$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'
-          R,←Execute'$("#currPf").show();'
+         ⍝ R,←Execute'$("#pfScen").show();$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'
+          R,←Execute'$("#pfScen").css("display","inline-block");$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'
+         ⍝ R,←Execute'$("#currPf").show();'
+          R,←Execute'$("#currPf").css("display","inline-block");'
      
      
       :Case 'endAdd'
@@ -285,10 +286,16 @@
     ∇ R←RunScenario;data
       :Access public
       data←CatchAPIErrors(SessionGet'APIref').CallAPI'RunScenario'(CurrSCid)
+      CurrSCdata←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenario'(CurrSCid)
+      sc2GridData←2⊃CurrSCdata
+      sc2Res←3⊃CurrSCdata
       R←Execute'ScenarioGrid3'UpdateDataSourceWith(data[;1 2,¯1↑⍴data])('commodity' 'firstval' 'lastval')
-      R,←Execute'$("#scResults").show();'
-      R,←Execute'$("#chartContainer").show();'
+      ⍝R,←Execute'$("#scResults").show();'
+      R,←Execute'$("#scResults").css("display","inline-block");'
+     ⍝ R,←Execute'$("#chartContainer").show();'
+      R,←Execute'$("#chartContainer").css("display","inline-block");'
       R,←Execute'$("#chartContainerInv").hide();'
+      R,←UpdateBenchmarkResults CurrSCid
     ∇
 
     ∇ R←BuildListPfSc cs;i
@@ -318,35 +325,41 @@
       :EndIf
      
       :If 0<1↑⍴sc2Res
-          bm←CatchAPIErrors(SessionGet'APIref').CallAPI'BenchmarkScenario'(CurrSCid)
-        ⍝ Format benchmark results:
-          i←bm[;1]⍳'start_value' 'end_value' ⋄ bm[i;3]←(⊂'CI15')⎕FMT¨bm[i;3]
-          i←bm[;1]⍳⊂'pct' ⋄ pct←bm[i;3] ⋄ bm[i;3]←(⊂'M<->P<+>CF8.2')⎕FMT¨bm[i;3]
-     
-          cellAtts←,[0.5]((¯1+1↑⍴bm)⍴''),⊂'.scBenchResult','NP'[1+pct>0]
-          R,←'#scBench'Replace('.scBenchmark'New _.Table((⍉bm[;2 3])(cellAtts)1)).Render
-          (from to)←sc2Res[1;2,¯1↑⍴sc2Res]
-          (from to)←#.utils.fmtDate¨from to
-          ⍝↓↓↓↓↓ this is a horrible collection of calls just to change the header - but I did not find a simpler way to do that :(
-          R,←Execute'var gobj=$("#ScenarioGrid3").data("ejGrid");gobj.getColumnByField("firstval").headerText="',from,'";gobj.getColumnByField("lastval").headerText="',to,'";gobj.refreshContent(true);'
-          R,←Execute'ScenarioGrid3'UpdateDataSourceWith(1 0↓sc2Res[;1 2,¯1↑⍴sc2Res])('commodity' 'firstval' 'lastval')('')
-          R,←Execute'$("#scResults").show();'
-          R,←Execute'$("#chartContainer").show();'
-          R,←Execute'$("#chartContainerInv").hide();'
-          ⍝ Charts←1 2⍴'Comparison of scenarios' '_cmp'
-          Charts←1 2⍴'++ Sum' '_sum'
-          Charts⍪←(1↓sc2Res[;1]),[1.5]⍕¨1+⍳¯1+⍬⍴⍴sc2Res
-          R,←chSelect.ReplaceOptions Charts
+          R,←UpdateBenchmarkResults CurrSCid
       :Else
           R,←Execute'$("#scResults").hide();'
           R,←Execute'$("#chartContainer").hide();'
-          R,←Execute'$("#chartContainerInv").show();'
-          R,←Execute chSelect.ReplaceOptions(1 2⍴'No scenario-results available' '0')
+        ⍝  R,←Execute'$("#chartContainerInv").show();'
+          R,←Execute'$("#chartContainerInv").css("display","inline-block");'
+          R,←Execute(chSelect.ReplaceOptions(1 2⍴'No scenario-results available' '0'))
       :EndIf
     ∇
 
+    ∇ R←UpdateBenchmarkResults CurrSCid;bm;i;Charts;from;to;cellAtts
+      bm←CatchAPIErrors(SessionGet'APIref').CallAPI'BenchmarkScenario'(CurrSCid)
+        ⍝ Format benchmark results:
+      i←bm[;1]⍳'start_value' 'end_value' ⋄ bm[i;3]←(⊂'CI15')⎕FMT¨bm[i;3]
+      i←bm[;1]⍳⊂'pct' ⋄ pct←bm[i;3] ⋄ bm[i;3]←(⊂'M<->P<+>CF8.2')⎕FMT¨bm[i;3]
+     
+      cellAtts←,[0.5]((¯1+1↑⍴bm)⍴''),⊂'.scBenchResult','NP'[1+pct>0]
+      R←'#scBench'Replace('.scBenchmark'New _.Table((⍉bm[;2 3])(cellAtts)1)).Render
+      (from to)←sc2Res[1;2,¯1↑⍴sc2Res]
+      (from to)←#.utils.fmtDate¨from to
+          ⍝↓↓↓↓↓ this is a horrible collection of calls just to change the header - but I did not find a simpler way to do that :(
+      R,←Execute'var gobj=$("#ScenarioGrid3").data("ejGrid");gobj.getColumnByField("firstval").headerText="',from,'";gobj.getColumnByField("lastval").headerText="',to,'";gobj.refreshContent(true);'
+      R,←Execute'ScenarioGrid3'UpdateDataSourceWith(1 0↓sc2Res[;1 2,¯1↑⍴sc2Res])('commodity' 'firstval' 'lastval')('')
+  ⍝    R,←Execute'$("#scResults").show();'
+      R,←Execute'$("#scResults").css("display","inline-block");'
+ ⍝     R,←Execute'$("#chartContainer").show();'
+      R,←Execute'$("#chartContainer").css("display","inline-block");'
+      R,←Execute'$("#chartContainerInv").hide();'
+          ⍝ Charts←1 2⍴'Comparison of scenarios' '_cmp'
+      Charts←1 2⍴'++ Sum' '_sum'
+      Charts⍪←(1↓sc2Res[;1]),[1.5]⍕¨1+⍳¯1+⍬⍴⍴sc2Res
+      R,←chSelect.ReplaceOptions Charts
+    ∇
+
     ∇ R←UpdateScenarioList
-      :Access public
       :Select _event
       :Case 'endAdd'
           rec←Get'editcell'
@@ -356,7 +369,8 @@
      
           R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
           R,←Execute'$("#ScenarioGrid1_RunScenario").prop("disabled" , false);'
-          R,←Execute'$("#scParams").show();'
+       ⍝   R,←Execute'$("#scParams").show();'
+          R,←Execute'$("#scParams").css("display","inline-block");'
           R,←Execute'ScenarioGrid2'UpdateDataSourceWith(0 3⍴0)('end' 'outlook' 'volatility')('end')
      
       :Case 'endEdit'
@@ -376,7 +390,6 @@
     ∇
 
     ∇ R←UpdateScenarioParams
-      :Access public
       ds←Get'dataSource'
       tab←↑ds.(end outlook volatility)
       tab[;1]←#.Dates.ParseISODate¨tab[;1]
@@ -391,8 +404,10 @@
       CurrSCid←newVal
       R←⍬
       :If newVal>0
-          R,←Execute'$("#pfScen").show();'
-          R,←Execute'$("#scParams").show();'
+          R,←Execute'$("#pfScen").css("display","inline-block");'
+          ⍝R,←Execute'$("#pfScen").show();'
+          R,←Execute'$("#scParams").css("display","inline-block");'
+         ⍝ R,←Execute'$("#scParams").show();'
       :Else
           R,←Execute'$("#pfScen").hide();'
           R,←Execute'$("#scParams").hide();'

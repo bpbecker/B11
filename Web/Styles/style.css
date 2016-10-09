@@ -8,13 +8,26 @@ b, strong, #logo {
     font-size: 1.5em;
 }
 
+#scResults > h3 {
+	margin-top:0.5em;
+}
 
+.floatingDiv {
+float:left;	
+display:inline-block;
+min-width: 30em;
+width: calc(50% - 2.2em);
+    margin: 1em;
+}
+.hidden {
+	display: none;
+}
 /*** Benchmark-Results (Scenario-Tab) *****/
 
 .scBenchmark > thead > tr > th {
 	background-color: silver;
 	font-weight: bold	;
-	padding: .3em .5em .2em .5em;
+	padding: .6em 1em .4em 1em;
 	border: 1px solid grey;
 }
 
@@ -24,7 +37,7 @@ b, strong, #logo {
 }
 
 .scBenchmark > tbody > tr > td {
-	padding: .3em .5em .2em .5em;
+	padding: .6em 1em .4em 1em;
 	border: 1px solid grey;
 	color: black;
 }
@@ -109,8 +122,7 @@ b, strong, #logo {
 .container {
     min-height: 32vh;
     margin: 2em auto 0 auto;
-    /* width: 50%; */
-    max-width: 50em;
+    overflow: auto;
 }
 
 #maintabs {
@@ -120,10 +132,6 @@ b, strong, #logo {
     width: 100%;
 }
 
-#maintabs > div {
-    min-height: calc(100vh - 7.5em);
-}
-
 .floatRight {
     float: right
 }
@@ -131,11 +139,12 @@ b, strong, #logo {
 html {
     background: #179bd7 url("money.jpg") no-repeat;
     background-size: cover;
+    height: 100%;
 }
 
 body {
     background: linear-gradient(rgb(23, 155, 215),rgba(139,205,235,0.75),rgba(255, 255, 255, 0.75));
-    height: 100vh;
+    height: 100%;
 }
 
 @font-face {
