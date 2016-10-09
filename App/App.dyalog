@@ -36,7 +36,6 @@
       {}Init''
       {}⎕SE.UCMD'box on'
       r←(↓⎕FNAMES)⍪⍉⍪⎕FREAD¨⎕FNUMS,¨1
-      ∘∘∘
     ∇
 
     :endsection
@@ -139,6 +138,7 @@
     ∇
 
     ∇ r←PortfolioPrototype
+      :Access public shared
       r←0 ''(0 4⍴'' 0 0 ⎕TS)
     ∇
 
@@ -299,7 +299,7 @@
           dir←getPortfolioDir
           :If 0≠ind←dir[;1]#.utils.iotaz pid
               dir[ind;4]←⊂pname
-              :If 2<1↑⍴arg ⍝ port is optional - if it is not there, we will only update the name
+              :If 2<1↑⍴args ⍝ port is optional - if it is not there, we will only update the name
                   port putPortfolio dir[ind;3]
                   DeletePortfolioScenarios pid
                   dir[ind;5]←⊃⍴port
@@ -332,7 +332,7 @@
           ⎕FHOLD scenarioTn
           :If 0∊⍴sname
               (rc msg)←11 'empty scenario name' ⋄ →Done
-          :EndIf     
+          :EndIf
           dir←getScenarioDir
           :If 0≠ind←dir[;1]#.utils.iotaz sid
               :If ~0∊¯1↑⍴params   ⍝ params optional
@@ -355,7 +355,7 @@
 
     :section Reporting
 
-    ∇ (rc msg data)←ClientSummary cid;pdir;sdir 
+    ∇ (rc msg data)←ClientSummary cid;pdir;sdir
     ⍝ Get portfolio level summary for a client
     ⍝ Arguments:
     ⍝  cid    - client id
@@ -363,12 +363,12 @@
     ⍝  rc     - 0 no error, 3 client id not found
     ⍝  data   - cid if error, otherwise
     ⍝           matrix of
-    ⍝           [;1] portfolio name 
-    ⍝           [;2] number commodities 
-    ⍝           [;3] number scenarios 
-    ⍝           [;4] created 
-    ⍝           [;5] last update 
-    ⍝           [;6] portfolio id 
+    ⍝           [;1] portfolio name
+    ⍝           [;2] number commodities
+    ⍝           [;3] number scenarios
+    ⍝           [;4] created
+    ⍝           [;5] last update
+    ⍝           [;6] portfolio id
       :Access public shared
       (rc msg data)←0 ''(0 7⍴'' 0 0 '' '')
       :Hold 'portfolio' 'scenario'
