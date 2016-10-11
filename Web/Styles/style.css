@@ -19,6 +19,11 @@ min-width: 30em;
 width: calc(50% - 2.2em);
     margin: 1em;
 }
+.fullWidth {
+	margin: 1em; width: calc(100% - 4em);
+}
+
+
 .hidden {
 	display: none;
 }

@@ -135,7 +135,7 @@
           'editSettings'sc1grid.Set'⍎{allowEditing: true, allowAdding: true, allowDeleting: true }'
           'allowSorting'sc1grid.Set _true
           Add _.Handler('#ScenarioGrid1_RunScenario' 'click' 'RunScenario'('target' 'argument' 'currentTarget'))
-          Add _.Script'$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'   ⍝ disabled by default
+          Add _.Script'$("#ScenarioGrid1_RunScenario").hide();'   ⍝ hidden by default (disabled/enabled would be nicer, but I couldn't figure out what element needed disabling...)
      
 ⍝------------ params of scenario -----------------------------------------
           scParams←'#scParams' '.floatingDiv hidden' R.Add _.div   ⍝ hide as long as we have none...
@@ -181,7 +181,7 @@
       :Case 3
      
           '#chartContainerInv'R.Add _.div'No scenario-results to show!'
-          chrt←'#chartContainer' 'style="display:none"'R.Add _.div
+          chrt←'#chartContainer' '.fullWidth hidden'R.Add _.div
           chrt.Add'Please select a chart to plot for Scenario '
           '.scname'chrt.Add _.span
           chrt.Add _.br
@@ -225,11 +225,10 @@
           R←Execute'pfItemsGrid'UpdateDataSourceWith pfItemsGridData('title' 'purch' 'count' 'price' 'val')('purch')
           R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
           R,←'.pfname'Replace row.name
-         ⍝ R,←Execute'$("#pfScen").show();$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'
-          R,←Execute'$("#pfScen").css("display","inline-block");$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'
-         ⍝ R,←Execute'$("#currPf").show();'
+          R,←Execute'$("#pfScen").css("display","inline-block");$("#ScenarioGrid1_RunScenario").hide();'
+          R,←Execute'$("#scParams").hide();'
+          R,←Execute'$("#scResults").hide();'
           R,←Execute'$("#currPf").css("display","inline-block");'
-     
      
       :Case 'endAdd'
           data←Get'editcell'
@@ -319,9 +318,9 @@
       R,←Execute'ScenarioGrid2'UpdateDataSourceWith(sc2GridData)('end' 'outlook' 'volatility')('end')
       R,←'.scname'Replace(CurrSCname←1 4⊃CurrSCdata)
       :If 0<1↑⍴sc2GridData
-          R,←Execute'$("#ScenarioGrid1_RunScenario").prop("disabled" , false);'
+          R,←Execute'$("#ScenarioGrid1_RunScenario").show();'
       :Else
-          R,←Execute'$("#ScenarioGrid1_RunScenario").prop("disabled" , true);'
+          R,←Execute'$("#ScenarioGrid1_RunScenario").hide();'
       :EndIf
      
       :If 0<1↑⍴sc2Res
@@ -368,7 +367,7 @@
           ScenarioGrid1Data←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(CurrPFid)
      
           R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
-          R,←Execute'$("#ScenarioGrid1_RunScenario").prop("disabled" , false);'
+          R,←Execute'$("#ScenarioGrid1_RunScenario").show();'
        ⍝   R,←Execute'$("#scParams").show();'
           R,←Execute'$("#scParams").css("display","inline-block");'
           R,←Execute'ScenarioGrid2'UpdateDataSourceWith(0 3⍴0)('end' 'outlook' 'volatility')('end')
@@ -384,7 +383,7 @@
           ScenarioGrid1Data←CatchAPIErrors(SessionGet'APIref').CallAPI'GetScenariosForPortfolio'(CurrPFid)
      
           R,←Execute'ScenarioGrid1'UpdateDataSourceWith(ScenarioGrid1Data[;1 4 5])('id' 'name' 'lupd')('lupd')
-          R,←Execute'$("#ScenarioGrid1_RunScenario").prop("disabled" , false);'
+          R,←Execute'$("#ScenarioGrid1_RunScenario").show();'
           R,←Execute'$("#scParams").hide();'
       :EndSelect
     ∇
@@ -405,12 +404,13 @@
       R←⍬
       :If newVal>0
           R,←Execute'$("#pfScen").css("display","inline-block");'
-          ⍝R,←Execute'$("#pfScen").show();'
           R,←Execute'$("#scParams").css("display","inline-block");'
-         ⍝ R,←Execute'$("#scParams").show();'
+          R,←Execute'$("#ScenarioGrid1_RunScenario").show();'
       :Else
           R,←Execute'$("#pfScen").hide();'
           R,←Execute'$("#scParams").hide();'
+          R,←Execute'$("#scResults").hide();'
+          R,←Execute'$("#ScenarioGrid1_RunScenario").hide();'
       :EndIf
     ∇
 
