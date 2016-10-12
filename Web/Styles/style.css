@@ -73,6 +73,12 @@ width: calc(50% - 2.2em);
     width: 6em;
 }
 
+#loginTabs {
+	width: 50%;
+	min-width: 40em;
+	margin: auto;
+}
+
 #loginBtn {
     margin-left: calc(100% - 6em);
 }
